@@ -387,7 +387,10 @@ class Batch(object):
         self.debug = debug      # enable debug features and save extended log
         self.quiet = quiet
         self.context = 5        # context size for diffs
-        self.system = platform.system()
+        self.system     = platform.system()
+        self.sysver     = platform.release()
+        self.platform   = sys.platform
+        self.dist       = platform.dist()
         self.errcode = 0        # error code of the last command
         self.errmsg = ''        # diagnostic message
         self.log = []           # debug log
@@ -399,7 +402,7 @@ class Batch(object):
         if len(self.LogFile)>0:
             if self.LogFile == "auto":
                 (d,f,e) = self.SplitFileName(callerScript)
-                self.LogFile = tempfile.gettempdir() + '/' + f + '__' + TextProcessor.TimeStamp() + '.tmp'
+                self.LogFile = os.path.normpath(tempfile.gettempdir() + '/' + f + '__' + TextProcessor.TimeStamp() + '.tmp')
             #--
         #---
         self.supressRunOutput = False
@@ -772,19 +775,30 @@ class Batch(object):
 
 
     def InsertFragmentAtPos(self, fileName, pos, fragment):
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        if not self.ReadFile(fileName):
-            return False
+        retVal = False
+        myName = (sys._getframe(0)).f_code.co_name
+        self.Log('--> %s' % myName)
 
-        self.text = TextProcessor.Insert(self.text,pos,fragment)
+        while True: # Single exit point function
+            if not self.ReadFile(fileName):
+                break
+            #---
+            self.text = TextProcessor.Insert(self.text,pos,fragment)
 
-        if not self.WriteFile(fileName):
-            return False
+            if not self.WriteFile(fileName):
+                break
+            #---
 
-        if self.debug:
-            self.DiffLastFileWrite()
+            if self.debug:
+                self.DiffLastFileWrite()
+            #---
 
-        return True
+            retVal = True
+            break # Single exit point function must break at the end
+        #---
+
+        self.Log('<-- %s' % myName)
+        return retVal
     #---------------------
 
 
@@ -988,15 +1002,38 @@ class Batch(object):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description='Shell Receipes Engine')
+    head_description = "Shell Receipes Engine"
+    parser = argparse.ArgumentParser(description        =   head_description,
+                                     formatter_class    =   argparse.RawDescriptionHelpFormatter)
+    # Global arguments
     parser.add_argument('--debug',   action='store_true', default=False,        help='Debug execution mode')
     parser.add_argument('--quiet',   action='store_true', default=False,        help='Quiet execution mode')
 
     subparsers = parser.add_subparsers(help='Supported commands', dest='command')
 
-    setup_parser = subparsers.add_parser('setup',                  help='Update module in the library')
-    setup_parser = subparsers.add_parser('unittest',               help='Unit test the module')
-    setup_parser = subparsers.add_parser('debug',                  help='Debug new code')
+    setup_parser = subparsers.add_parser('setup',                  help='Setup Python module')
+    setup_parser = subparsers.add_parser('install',                help='Install shrec as system utility')
+    unitt_parser = subparsers.add_parser('unittest',               help='Unit test the module')
+    debug_parser = subparsers.add_parser('debug',                  help='Debug new code')
+
+    recipe_parser = subparsers.add_parser('recipe',                  help='System configuration recipes')
+    rsp = recipe_parser.add_subparsers(help='Recipes', dest='recipe')
+
+    description = "Enable or disable SSH access for root"
+    r001_parser = rsp.add_parser('enablerootssh',  description=description,     help='Enable root ssh')
+    r001_parser.add_argument('--no',  action='store_true', default=False,       help='Opposite operation')
+
+    description = "Enable or disable kernel power managemennt functions"
+    r002_parser = rsp.add_parser('enablepm',  description=description,          help='Enable power management')
+    r002_parser.add_argument('--no',  action='store_true', default=False,       help='Opposite operation')
+
+    description = "Enable or disable IP V.6 support"
+    r003_parser = rsp.add_parser('enableip6',  description=description,         help='Enable support of IP v.6')
+    r003_parser.add_argument('--no',  action='store_true', default=False,       help='Opposite operation')
+
+    description = "Enable or disable TCG SED support"
+    r003_parser = rsp.add_parser('enabletcg',  description=description,         help='Enable support of TCG storage')
+    r003_parser.add_argument('--no',  action='store_true', default=False,       help='Opposite operation')
 
     args = parser.parse_args()
 
@@ -1049,6 +1086,58 @@ if __name__ == "__main__":
 
         exit(errorCount)
     #--
+
+    if (args.command == 'recipe'):
+
+        if (args.recipe == 'enablerootssh'):
+            batch = Batch(args.debug, args.quiet, "auto")
+            if batch.system != 'Linux': # Check the current platform
+                batch.Print("Current platform is %s" % batch.system)
+                batch.Print("Command is supported only for Linux platforms, terminating")
+                batch.Print("See details in %s" % batch.LogFile)
+                batch.Exit(0)
+            #---
+            if (args.no == False):
+                # Normal operation
+                batch.ReplaceLineInFile('/etc/ssh/sshd_config', 'PermitRootLogin', 'PermitRootLogin yes')
+            else:
+                batch.ReplaceLineInFile('/etc/ssh/sshd_config', 'PermitRootLogin', 'PermitRootLogin without-password')
+            #---
+            batch.Run('service sshd restart')
+            batch.Exit(0)
+        #---
+
+        if (args.recipe == 'enabletcg'):
+            batch = Batch(args.debug, args.quiet, "auto")
+            if batch.system != 'Linux': # Check the current platform
+                batch.Print("Current platform is %s" % batch.system)
+                batch.Print("Command is supported only for Linux platforms, terminating")
+                batch.Print("See details in %s" % batch.LogFile)
+                batch.Exit(0)
+            #---
+            if (args.no == False):
+                # Normal operation
+                # /etc/default/grub
+                # GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+                # Change to GRUB_CMDLINE_LINUX_DEFAULT="quiet splash libata.allow_tpm=1"
+                # run update-grub
+                #
+            else:
+                # Reverse operation
+                # /etc/default/grub
+                # GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+                # Change to GRUB_CMDLINE_LINUX_DEFAULT="quiet splash libata.allow_tpm=1"
+                # run update-grub
+                #
+            #---
+            batch.Run('service sshd restart')
+            batch.Exit(0)
+        #---
+
+    #--
+
+
+
 
     if (args.command == 'debug'):
         batch = Batch(args.debug, args.quiet, "auto")
