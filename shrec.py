@@ -34,6 +34,19 @@ class TextProcessor(object):
         return ''.join(random.choice(charset) for _ in range(length))
     #--- end of method
 
+
+    @staticmethod
+    def GetCommandOutput(command, args=''):
+        retVal = []
+        outputInOneStr = subprocess.check_output([command, args])
+        retVal = re.split('[\r\n]+', outputInOneStr)
+        for idx in range(0,len(retVal)):
+            retVal[idx] = retVal[idx].rstrip()
+        #---
+        return retVal
+    #--- end of method
+
+
     @staticmethod
     def DebugInfo(messageStr):
         frame = sys._getframe(1)
@@ -499,7 +512,7 @@ class Batch(object):
     #---
 
 
-    def Run (self, commandStr, workingDirectory=''):
+    def Run (self, commandStr, workingDirectory='', silent=False):
         if len(commandStr)==0:
             return True
         #---
@@ -527,7 +540,7 @@ class Batch(object):
 
         self.Log('PID = %d' % pid)
 
-        if self.supressRunOutput:
+        if self.supressRunOutput or silent:
             (self.rawOutput, self.rawError) = self.process.communicate()
             self.cout = TextProcessor.CommandOutput(self.rawOutput)
             self.cerr = TextProcessor.CommandOutput(self.rawError)
@@ -719,12 +732,6 @@ class Batch(object):
         return True
     #---
 
-    def SaveLog(self, logFile=''):
-        if logFile=='':
-            logFile = '/var/log/' + os.path.basename(self.caller) + '.log'
-        self.WriteFile(logFile, self.log)
-    #---
-
     def AddLinesToFile(self, fileName, lines):
         self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
         if not self.ReadFile(fileName):
@@ -891,9 +898,6 @@ class Batch(object):
             print (message)
         #---
         self.Log('Exit script with code %d' % retCode)
-        if self.debug:
-            self.SaveLog(log)
-            TextProcessor.Print(self.log)
         exit(retCode)
     #--
 
@@ -903,9 +907,6 @@ class Batch(object):
         self.log.append(strMessage)
         sys.stderr.write("%s\n" % message)
         self.Log('Exit script with code %d' % retCode)
-        if self.debug:
-            self.SaveLog(log)
-            TextProcessor.Print(self.log)
         exit(retCode)
     #--
 
@@ -994,7 +995,40 @@ class Batch(object):
         return oneDirUp
     #---
 
+    def GetMACAddress(self, delimiter=':'):
+        retVal = ''
+        while True:
+            self.Run('ifconfig -a | grep HWaddr', silent=True)
+            if self.cret != 0:
+                self.Log("ERROR: Command execution error.")
+                break # execution error
+            #---
 
+            if len(self.cout) < 1:
+                self.Log("ERROR: Command returned no output. Is pattern HWaddr missing?")
+                break
+            #---
+
+            parts = re.split('\s+',self.cout[0])
+            if len(parts) < 1:
+                self.Log("ERROR: Command output format. Is output format  differ from expected?")
+                break
+            #---
+
+            rawStr = parts[4]
+            byteStr = re.split(':',rawStr)
+            if len(byteStr) < 6:
+                self.Log("ERROR: Parsing error. Is output format  differ from expected?")
+                break
+            #---
+
+            # Success
+            retVal = delimiter.join(byteStr)
+
+            break
+        #----------------------
+        return retVal
+    #---
 
 #-- end of class
 
@@ -1034,6 +1068,11 @@ if __name__ == "__main__":
     description = "Enable or disable TCG SED support"
     r003_parser = rsp.add_parser('enabletcg',  description=description,         help='Enable support of TCG storage')
     r003_parser.add_argument('--no',  action='store_true', default=False,       help='Opposite operation')
+
+    description = "Set hostname"
+    r003_parser = rsp.add_parser('sethostname',  description=description,       help='Set hostname from MAC or Random')
+    r003_parser.add_argument('--naming',  action='store', default='mac',          help='Naming: {mac,rnd}')
+
 
     args = parser.parse_args()
 
@@ -1115,7 +1154,9 @@ if __name__ == "__main__":
                 batch.Print("See details in %s" % batch.LogFile)
                 batch.Exit(0)
             #---
+            print( batch.GetMACAddress('').upper() )
             if (args.no == False):
+                batch.Print("Enabling support of TCG storage")
                 # Normal operation
                 # /etc/default/grub
                 # GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
@@ -1123,6 +1164,7 @@ if __name__ == "__main__":
                 # run update-grub
                 #
             else:
+                batch.Print("Disabling support of TCG storage")
                 # Reverse operation
                 # /etc/default/grub
                 # GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
@@ -1130,9 +1172,46 @@ if __name__ == "__main__":
                 # run update-grub
                 #
             #---
-            batch.Run('service sshd restart')
             batch.Exit(0)
         #---
+
+        if (args.recipe == 'sethostname'):
+            batch = Batch(args.debug, args.quiet, "auto")
+            if batch.system != 'Linux': # Check the current platform
+                batch.Print("Current platform is %s" % batch.system)
+                batch.Print("Command is supported only for Linux platforms, terminating")
+                batch.Print("See details in %s" % batch.LogFile)
+                batch.Exit(0)
+            #---
+            exitCode = -1
+            while True:
+                if args.naming == 'mac':
+                    newHostName = batch.GetMACAddress('').upper()
+                elif args.naming == 'rnd':
+                    newHostName = TextProcessor.RandomString(8)
+                else:
+                    batch.Print("ERROR: Unsupported naming scheme %s" % args.naming)
+                    break
+                #---
+
+                if len(newHostName)==0:
+                    batch.Print("ERROR: Cannot get new hostname.")
+                    break
+                #---
+
+                batch.Run('hostname %s' % newHostName, silent=True)
+                if batch.cret != 0:
+                    batch.Print("ERROR: Command execution error.")
+                    break
+                #---
+
+                #-------------------- SUCCESS
+                exitCode = 0
+                break
+            #---
+            batch.Exit(exitCode)
+        #---
+
 
     #--
 
