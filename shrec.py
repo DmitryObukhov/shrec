@@ -1,6 +1,6 @@
 #!/usr/bin/python
 __author__ = 'dmitry.obukhov'
-__all__ = ['TextProcessor']
+__all__ = ['TextProcessor', 'Batch']
 
 import subprocess, threading
 import os, sys, shutil, signal, platform
@@ -15,6 +15,11 @@ import random
 import string
 import logging, inspect
 import tempfile
+import zlib
+import binascii
+import hashlib
+import base64
+import sys
 
 class TextProcessor(object):
     @staticmethod
@@ -90,6 +95,24 @@ class TextProcessor(object):
 
         return retStr
     #--
+
+    @staticmethod
+    def Fold(longStr, width):
+        retVal = []
+        tmp = longStr
+        while len(tmp)>0:
+            cur = ''
+            if len(tmp)>width:
+                cur = tmp[0:width]
+                tmp = tmp[width:]
+            else:
+                cur = tmp
+                tmp = ''
+            #---
+            retVal.append(cur)
+        #---
+        return retVal
+    #---
 
     @staticmethod
     def Format(t, indent="", header="", footer="", maxLen=-1, minLen=-1, lineNumberingStart=-1):
@@ -727,7 +750,7 @@ class Batch(object):
                 os.remove(diffName)
             except:
                 self.Log("Warning: Cannot delete temp file in Diff function")
-
+            #---
         #-- end if
         return True
     #---
@@ -1030,6 +1053,77 @@ class Batch(object):
         return retVal
     #---
 
+
+    def GenPyBin(self, exportData, objName, defaultFileLocation):
+        f = open(objName+'.py', 'wt')
+        f.write( "#!/usr/bin/python\n")
+        f.write( "\n")
+        f.write( "__all__ = ['Export']\n")
+        f.write( "\n")
+        f.write( "# This is automatically generated file. Do not edit!\n")
+        f.write( "# Usage:\n")
+        f.write( "#     import %s\n" % objName)
+        f.write( "#     %s.Extract()\n" % objName)
+        f.write( "# or in command line\n")
+        f.write( "#     python %s.py [fileName]\n" % objName)
+        f.write( "\n")
+        f.write( "import zlib\n")
+        f.write( "import binascii\n")
+        f.write( "import hashlib\n")
+        f.write( "import base64\n")
+        f.write( "import sys\n")
+        f.write( "\n")
+        f.write( "def Extract(fileName='%s'):\n" % defaultFileLocation)
+        f.write( "    binObject=''\n")
+
+        dataArray = TextProcessor.Fold(exportData, 100)
+
+        for blk in dataArray:
+            f.write( "    binObject+='%s'\n" % blk)
+        #---
+
+
+        f.write( "    decoded = base64.b64decode(binObject)\n")
+        f.write( "    decompressed = zlib.decompress(decoded)\n")
+        f.write( "    f = open(fileName, 'wb')\n")
+        f.write( "    f.write(decompressed)\n")
+        f.write( "    f.flush()\n")
+        f.write( "    f.close()\n")
+        f.write( "#---\n")
+        f.write( "\n")
+        f.write( "if __name__ == '__main__':\n")
+        f.write( "    import argparse\n")
+        f.write( "    parser = argparse.ArgumentParser()\n")
+        f.write( "    parser.add_argument('--file', action='store', default='%s', help='Export file name')\n" % defaultFileLocation)
+        f.write( "    args = parser.parse_args()\n")
+        f.write( "    Extract(args.file)\n")
+        f.write( "#---\n")
+        f.write( "\n")
+    #---
+
+
+
+    def bin2py(self, binFileName, pyObjectName):
+        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
+        try:
+            self.Log('Converting %s to %s.py' % (binFileName, pyObjectName))
+
+            original_data = open(binFileName, 'rb').read()
+            self.Log('Original   %8d bytes (%s)' % (len(original_data), hashlib.sha256(original_data).hexdigest()))
+
+            compressed = zlib.compress(original_data)
+            self.Log('Compressed %8d bytes (%s)' % (len(compressed), hashlib.sha256(compressed).hexdigest()))
+
+            encoded = base64.b64encode(compressed)
+            self.Log('Encoded    %8d bytes (%s)' % (len(encoded), hashlib.sha256(encoded).hexdigest()))
+
+            self.GenPyBin(encoded, pyObjectName, binFileName)
+        except:
+            self.Log("Warning: something went wrong")
+        #---
+        self.Log('<-- %s' % (sys._getframe(0)).f_code.co_name)
+    #---
+
 #-- end of class
 
 
@@ -1176,6 +1270,7 @@ if __name__ == "__main__":
         #---
 
         if (args.recipe == 'sethostname'):
+            # https://www.linuxquestions.org/questions/linux-networking-3/mac-address-based-hostname-333067/
             batch = Batch(args.debug, args.quiet, "auto")
             if batch.system != 'Linux': # Check the current platform
                 batch.Print("Current platform is %s" % batch.system)
@@ -1204,6 +1299,13 @@ if __name__ == "__main__":
                     batch.Print("ERROR: Command execution error.")
                     break
                 #---
+
+
+                if not batch.WriteFile('/etc/hostname', [newHostName]):
+                    batch.Print("ERROR: writing /etc/hostname")
+                    break
+                #---
+
 
                 #-------------------- SUCCESS
                 exitCode = 0
