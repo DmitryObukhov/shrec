@@ -539,7 +539,7 @@ class Batch(object):
         if len(commandStr)==0:
             return True
         #---
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
+        self.Log('--> %s     %s' % ((sys._getframe(0)).f_code.co_name,commandStr))
         self.cout = []
         self.parsed = []
         self.cerr = []
@@ -589,6 +589,15 @@ class Batch(object):
 
         offset = ' '*4
         spacer = '\n'*2
+
+        if self.cret!=0:
+            if len(self.cout)>0 and (self.supressRunOutput or silent):
+                TextProcessor.Print(self.cout, ' '*4, '------- stdout output -------------')
+            #---
+            if len(self.cerr)>0:
+                TextProcessor.Print(self.cerr, ' '*4, '------- stderr output -------------')
+            #---
+
         if len(self.cout)>0:
             header = '--- stdout of %s ---' % self.command
             footer = '-'*len(header)
