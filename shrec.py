@@ -64,7 +64,7 @@ class TextProcessor(object):
 
 
     @staticmethod
-    def DebugInfo(messageStr):
+    def debug_info(messageStr):
         """  --> Debug info """
         frame = sys._getframe(1)
         funName = frame.f_code.co_name
@@ -86,15 +86,15 @@ class TextProcessor(object):
             retVal = f.readlines()
             f.close()
             if cleanUp == True:
-                retVal = TextProcessor.RStrip(retVal)
-                retVal = TextProcessor.RemoveEmptyLines(retVal)
+                retVal = TextProcessor.rstrip_all(retVal)
+                retVal = TextProcessor.remove_empty_lines(retVal)
         return retVal
     #---------------------
 
 
 
     @staticmethod
-    def UnifyLength(s, maxLen=-1, minLen=-1, spacer=' '):
+    def unify_length(s, maxLen=-1, minLen=-1, spacer=' '):
         """  Cut string or add spacers to keep length for all lines """
         retStr = s
         curLen = len(retStr)
@@ -111,7 +111,7 @@ class TextProcessor(object):
     #--
 
     @staticmethod
-    def Fold(longStr, width):
+    def fold(longStr, width):
         """  longStr --> [str1,str2,str3] """
         retVal = []
         tmp = longStr
@@ -130,7 +130,7 @@ class TextProcessor(object):
     #---
 
     @staticmethod
-    def Format(t, indent="", header="", footer="", maxLen=-1, minLen=-1, lineNumberingStart=-1):
+    def format(t, indent="", header="", footer="", maxLen=-1, minLen=-1, lineNumberingStart=-1):
         """  [str1,str2] --> [header, offset + str1, offset + str2, footer]"""
         retTxt = []
         lineNumberStr = ""
@@ -152,7 +152,7 @@ class TextProcessor(object):
                 lineNumber += 1
             # prepare line in format [indent][lineNumber][actualString]
             curLine = "%s%s%s" % (indent,lineNumberStr,t[i])
-            curLine = TextProcessor.UnifyLength(curLine,maxLen,minLen)
+            curLine = TextProcessor.unify_length(curLine,maxLen,minLen)
             # add to the output
             retTxt.append(curLine)
         #----------------------------- end for
@@ -167,7 +167,7 @@ class TextProcessor(object):
     def Print(t, indent="", header="", footer="", maxLen=-1, minLen=-1, lineNumberingStart=-1):
         """  print the list of strings """
         if len(t)>0:
-            tmp = TextProcessor.Format(t,indent,header,footer,maxLen,minLen,lineNumberingStart)
+            tmp = TextProcessor.format(t,indent,header,footer,maxLen,minLen,lineNumberingStart)
             for i in range(0,len(tmp)):
                 print (tmp[i])
             #---
@@ -176,7 +176,7 @@ class TextProcessor(object):
 
 
     @staticmethod
-    def Save(theList, fName):
+    def save(theList, fName):
         """  save text to file """
         fileToSave = open(fName, 'w')
         for item in theList:
@@ -187,7 +187,7 @@ class TextProcessor(object):
     #---
 
     @staticmethod
-    def Append(theList, fName):
+    def append(theList, fName):
         """  append text to file """
         fileToSave = open(fName, 'a')
         for item in theList:
@@ -200,7 +200,7 @@ class TextProcessor(object):
 
 
     @staticmethod
-    def Replace(t, pattern, replacement):
+    def replace(t, pattern, replacement):
         """  replace pattern in all strings """
         retVal = []
         for i in range(0,len(t)):
@@ -214,7 +214,7 @@ class TextProcessor(object):
     #---------------------
 
     @staticmethod
-    def EachLine(txt, functionStr):
+    def each_line(txt, functionStr):
         """ for each line ret[x] = functionStr(inp[x]) """
         retVal = []
         for i in range(0,len(txt)):
@@ -226,7 +226,7 @@ class TextProcessor(object):
     #--
 
     @staticmethod
-    def RStrip(txt):
+    def rstrip_all(txt):
         """ for each y = rstrip(x) """
         retVal = []
         for i in range(0,len(txt)):
@@ -236,7 +236,7 @@ class TextProcessor(object):
     #---------------------
 
     @staticmethod
-    def RemoveEmptyLines(txt):
+    def remove_empty_lines(txt):
         """ RemoveEmptyLines """
         retVal = []
         for i in range(0,len(txt)):
@@ -248,7 +248,7 @@ class TextProcessor(object):
     #---------------------
 
     @staticmethod
-    def RemoveDuplicates(txt):
+    def remove_duplicates(txt):
         output = []
         for x in txt:
             if x not in output:
@@ -260,7 +260,7 @@ class TextProcessor(object):
 
 
     @staticmethod
-    def Add(txt, something, delimiter='[\n|\r]+'):
+    def add(txt, something, delimiter='[\n|\r]+'):
         if type( something ) == str :
             tmp = re.split(delimiter, something)
             txt.extend(tmp)
@@ -270,7 +270,7 @@ class TextProcessor(object):
     #---------------------
 
     @staticmethod
-    def Dedent(txt, offsetPos=0):
+    def dedent(txt, offsetPos=0):
         output = []
         for x in txt:
             output.append(x[offsetPos:])
@@ -279,7 +279,7 @@ class TextProcessor(object):
     #---------------------
 
     @staticmethod
-    def MaxLen(txt):
+    def maxlen(txt):
         maxLen = len(txt[0])
         for x in txt:
             if len(x)>maxLen:
@@ -290,7 +290,7 @@ class TextProcessor(object):
     #---------------------
 
     @staticmethod
-    def MinLen(txt):
+    def minlen(txt):
         minLen = len(txt[0])
         for x in txt:
             if len(x)<minLen:
@@ -302,7 +302,7 @@ class TextProcessor(object):
 
 
     @staticmethod
-    def ToString (txt, delimiter=' '):
+    def to_string (txt, delimiter=' '):
         retStr = ""
         maxidx = len(txt)
         for i in range(0,maxidx):
@@ -315,7 +315,7 @@ class TextProcessor(object):
     #---------------------
 
     @staticmethod
-    def AddRightColumn(txt,trailer=' '):
+    def add_right_column(txt,trailer=' '):
         output = []
         for x in txt:
             output.append(x + trailer)
@@ -324,7 +324,7 @@ class TextProcessor(object):
     #---------------------
 
     @staticmethod
-    def VerticalCut(txt,leftCol=0,rightCol=-1):
+    def vertical_cut(txt,leftCol=0,rightCol=-1):
         output = []
         for x in txt:
             if len(x)<leftCol:
@@ -338,7 +338,7 @@ class TextProcessor(object):
     #---------------------
 
     @staticmethod
-    def Filter(txt, pattern):
+    def filter(txt, pattern):
         filtered = []
         for i in range(0,len(txt)):
             x = re.findall(pattern, txt[i])
@@ -350,7 +350,7 @@ class TextProcessor(object):
     #---------------------
 
     @staticmethod
-    def FilterNot(txt, pattern):
+    def filter_not(txt, pattern):
         filtered = []
         for i in range(0,len(txt)):
             x = re.findall(pattern, txt[i])
@@ -363,7 +363,7 @@ class TextProcessor(object):
 
 
     @staticmethod
-    def SearchForward(txt, pattern, start=0):
+    def search_forward(txt, pattern, start=0):
         for i in range(start,len(txt)):
             x = re.findall(pattern, txt[i])
             if len(x)>0:
@@ -372,7 +372,7 @@ class TextProcessor(object):
     #---------------------
 
     @staticmethod
-    def SearchBackward(txt, pattern, start=-1):
+    def search_backward(txt, pattern, start=-1):
         if start<0:
             start = len(txt)-1
         for i in range(start,-1,-1):
@@ -384,7 +384,7 @@ class TextProcessor(object):
 
 
     @staticmethod
-    def Count(txt,pattern):
+    def count_matches(txt,pattern):
         retVal = 0
         for i in range(0,len(txt)):
             x = re.findall(pattern, txt[i])
@@ -397,7 +397,7 @@ class TextProcessor(object):
 
 
     @staticmethod
-    def Fragment(txt, start, stop):
+    def cut_fragment(txt, start, stop):
         filtered = []
         if start<0:
             start = 0
@@ -412,7 +412,7 @@ class TextProcessor(object):
 
 
     @staticmethod
-    def Replace(txt,compiledRegEx,replacement):
+    def replace_all(txt,compiledRegEx,replacement):
         output = []
         for i in range(0,len(txt)):
             (s,x) = compiledRegEx.subn(replacement,txt[i])
@@ -421,7 +421,7 @@ class TextProcessor(object):
     #---------------------
 
     @staticmethod
-    def Insert(txt,position,fragment):
+    def insert_fragment(txt,position,fragment):
         """ insert fragment at given position """
         output = []
         if position<len(txt):
@@ -458,7 +458,7 @@ class Batch(object):
         self.dist       = platform.dist()
         self.errcode = 0        # error code of the last command
         self.errmsg = ''        # diagnostic message
-        self.log = []           # debug log
+        self.logList = []           # debug log
         self.text = []
         self.output = []        # copy of print
         self.replay = []        # replay buffer
@@ -481,7 +481,7 @@ class Batch(object):
         self.LogFile = LogFile
         if len(self.LogFile)>0:
             if self.LogFile == "auto":
-                (d,f,e) = self.SplitFileName(callerScript)
+                (d,f,e) = self.split_file_name(callerScript)
                 self.LogFile = os.path.normpath(tempfile.gettempdir() + '/' + f + '__' + TextProcessor.time_stamp() + '.tmp')
             #--
         #---
@@ -491,40 +491,40 @@ class Batch(object):
         self.caller = callerScript
         self.logBaseline = 3
         self.logOffsetStr = '    '
-        self.Log('caller=%s' % callerScript)
-        self.Log('self=%s' % __file__)
+        self.log('caller=%s' % callerScript)
+        self.log('self=%s' % __file__)
         if self.debug:
-            self.Log('==== System information')
-            self.Log("platform.system=%s" % self.system)
-            self.Log("platform.platform=%s" % platform.platform())
+            self.log('==== System information')
+            self.log("platform.system=%s" % self.system)
+            self.log("platform.platform=%s" % platform.platform())
             (x,y) = platform.architecture()
-            self.Log("platform.architecture=%s" % x)
-            self.Log("platform.python_version=%s" % platform.python_version())
-            self.Log("platform.system=%s" % platform.system())
+            self.log("platform.architecture=%s" % x)
+            self.log("platform.python_version=%s" % platform.python_version())
+            self.log("platform.system=%s" % platform.system())
             if 'Linux' == self.system:
                 (distName,distVer,distID) = platform.linux_distribution()
-                self.Log("Linux.Distro=%s" % distName)
-                self.Log("Linux.Version=%s" % distVer)
-                self.Log("Linux.DistID=%s" % distID)
+                self.log("Linux.Distro=%s" % distName)
+                self.log("Linux.Version=%s" % distVer)
+                self.log("Linux.DistID=%s" % distID)
             #---
-            self.Log('===========================')
+            self.log('===========================')
         #--
     #---
 
-    def _callStackDepth (self):
+    def _call_stack_depth (self):
         """ Hidden Method for stack depth """
         stack = inspect.stack()
         return len(stack)
     #---
 
-    def Log(self, message):
+    def log(self, message):
         """ Save message in execution history """
         stack = inspect.stack()
         offset = self.logOffsetStr * (len(stack) - self.logBaseline)
         if self.debug:
             print (offset + message)
         #---
-        self.log.append(offset + message)
+        self.logList.append(offset + message)
         if len(self.LogFile)>0:
             with open(self.LogFile, "a") as myLogFile:
                 myLogFile.write("%s\n" % (offset + message))
@@ -535,41 +535,41 @@ class Batch(object):
 
     def ask_to_continue(self, message=''):
         """ Ask for user input to continue or stop """
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         if len(message)>0:
-            self.Print(message)
+            self.prn(message)
         else:
-            self.Print("Continue execution?")
+            self.prn("Continue execution?")
         #---
         var = raw_input('')
         if var == 'n':
-            self.Log('User terminated')
-            self.Exit(0)
+            self.log('User terminated')
+            self.exit(0)
         #---
-        self.Log('User choose to continue...')
+        self.log('User choose to continue...')
         return True
     #---
 
 
-    def LogCallerFunction(self):
+    def log_caller_function(self):
         """ LogCallerFunction """
-        self.Log('--> %s' % (sys._getframe(1)).f_code.co_name)
+        self.log('--> %s' % (sys._getframe(1)).f_code.co_name)
         return True
     #---
 
 
-    def LogExtend(self, arrayOfStrings):
+    def log_extend(self, arrayOfStrings):
         """ Log a list of strings """
         stack = inspect.stack()
         offset = self.logOffsetStr * (len(stack) - self.logBaseline)
         for eachStr in arrayOfStrings:
-            self.Log(offset + eachStr)
+            self.log(offset + eachStr)
         return True
     #---
 
 
 
-    def _HiddenRun (self, commandStr, workingDirectory=''):
+    def _run_silent (self, commandStr, workingDirectory=''):
         """ Run shall command without log messages """
         actualDirectory = os.getcwd()
         if (len(workingDirectory)>0):
@@ -585,12 +585,12 @@ class Batch(object):
     #---
 
 
-    def Run (self, commandStr, workingDirectory='', silent=False):
+    def run (self, commandStr, workingDirectory='', silent=False):
         """ Run shall command """
         if len(commandStr)==0:
             return True
         #---
-        self.Log('--> %s     %s' % ((sys._getframe(0)).f_code.co_name,commandStr))
+        self.log('--> %s     %s' % ((sys._getframe(0)).f_code.co_name,commandStr))
         self.cout = []
         self.parsed = []
         self.cerr = []
@@ -598,21 +598,21 @@ class Batch(object):
         self.command = commandStr
         self.starttime = time()
 
-        self.Log("Executing %s at %s" % (self.command, os.getcwd()))
-        self.Log("Started %s" % ctime(self.starttime))
+        self.log("Executing %s at %s" % (self.command, os.getcwd()))
+        self.log("Started %s" % ctime(self.starttime))
 
         actualDirectory = os.getcwd()
         if (len(workingDirectory)>0):
-            self.Log("Changing directory %s --> %s" % (actualDirectory,workingDirectory))
+            self.log("Changing directory %s --> %s" % (actualDirectory,workingDirectory))
             os.chdir(workingDirectory)
         #--
 
-        self.Log("Continue in %s" % (os.getcwd()))
+        self.log("Continue in %s" % (os.getcwd()))
 
         self.process = subprocess.Popen(self.command, shell=True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         pid = self.process.pid
 
-        self.Log('PID = %d' % pid)
+        self.log('PID = %d' % pid)
 
         if self.supressRunOutput or silent:
             (self.rawOutput, self.rawError) = self.process.communicate()
@@ -625,7 +625,7 @@ class Batch(object):
 
             for line in iter(self.process.stdout.readline, ''):
                 line = line.rstrip()
-                self.Print ("%s" % line)
+                self.prn ("%s" % line)
                 self.cout.append(line)
             #---
             self.rawError = self.process.stderr.readlines()
@@ -636,7 +636,7 @@ class Batch(object):
             self.rawOutput = "\n".join(self.cout)
         #---
 
-        self.Log('Thread finished with return code %d' % self.cret)
+        self.log('Thread finished with return code %d' % self.cret)
 
         offset = ' '*4
         spacer = '\n'*2
@@ -652,72 +652,72 @@ class Batch(object):
         if len(self.cout)>0:
             header = '--- stdout of %s ---' % self.command
             footer = '-'*len(header)
-            self.LogExtend(TextProcessor.Format(self.cout, offset, header, footer))
+            self.log_extend(TextProcessor.format(self.cout, offset, header, footer))
         #--
         if len(self.cerr)>0:
             header = '--- stderr of %s ---' % self.command
             footer = '-'*len(header)
-            self.LogExtend(TextProcessor.Format(self.cerr, offset, header, footer))
+            self.log_extend(TextProcessor.format(self.cerr, offset, header, footer))
         #--
 
         if (len(workingDirectory)>0):
-            self.Log("Changing directory %s --> %s" % (workingDirectory,actualDirectory))
+            self.log("Changing directory %s --> %s" % (workingDirectory,actualDirectory))
             os.chdir(actualDirectory)
-            self.Log("Continue in %s" % (os.getcwd()))
+            self.log("Continue in %s" % (os.getcwd()))
         #--
 
 
         self.endtime = time()
         self.elapsed = (self.endtime - self.starttime)
-        self.Log("Completed %s" % ctime(self.endtime))
-        self.Log("Elapsed %f seconds" % self.elapsed)
+        self.log("Completed %s" % ctime(self.endtime))
+        self.log("Elapsed %f seconds" % self.elapsed)
 
         return (self.cret == 0)
 
 
 
-    def RunAndParse(self, command, workDir, pattern, delimiter=' '):
+    def run_and_parse(self, command, workDir, pattern, delimiter=' '):
         """ Run shall command and parse output """
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         self.token = []
-        res = self.Run(command,workDir)
-        pos = TextProcessor.SearchForward(self.cout,pattern)
+        res = self.run(command,workDir)
+        pos = TextProcessor.search_forward(self.cout,pattern)
         if pos>=0:
-            self.Log('Pattern %s found at position %d of stdout' % (pattern,pos))
+            self.log('Pattern %s found at position %d of stdout' % (pattern,pos))
             self.token = re.split(delimiter,self.cout[pos])
-            self.Log('Extracted %d tokens' % (len(self.token)))
+            self.log('Extracted %d tokens' % (len(self.token)))
         else:
-            self.Log('Pattern %s is not found in stdout capture' % (pattern))
-            pos = TextProcessor.SearchForward(self.cerr,pattern)
+            self.log('Pattern %s is not found in stdout capture' % (pattern))
+            pos = TextProcessor.search_forward(self.cerr,pattern)
             if pos>=0:
-                self.Log('Pattern %s found at position %d in stderr' % (pattern,pos))
+                self.log('Pattern %s found at position %d in stderr' % (pattern,pos))
                 self.token = re.split(delimiter,self.cerr[pos])
-                self.Log('Extracted %d tokens' % (len(self.token)))
+                self.log('Extracted %d tokens' % (len(self.token)))
             else:
-                self.Log('Pattern %s is not found in stderr capture' % (pattern))
+                self.log('Pattern %s is not found in stderr capture' % (pattern))
             #---
         return pos
     #---
 
 
-    def RunAsUser(self, command, workDir, user=''):
+    def run_as_user(self, command, workDir, user=''):
         """ Run shall command as specific user """
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name + " user=%s" % user)
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name + " user=%s" % user)
         if len(user)>0:
             # Run it as different user
             command = ("sudo -H -u %s bash -c " % user) + "'" + command + "'"
         #---
-        return self.Run(command)
+        return self.run(command)
     #---
 
-    def _ReadNewBuffer (self, fileName):
+    def _read_new_buffer (self, fileName):
         """ Read file """
         retBuf = []
         self.errcode = 0
         if not os.path.isfile(fileName):
             self.errcode = -1
             self.errmsg = "ERROR (%d): Cannot find file %s" % (self.errcode, fileName)
-            self.Log(self.errmsg)
+            self.log(self.errmsg)
             return (False,[])
         #-- end if
 
@@ -726,7 +726,7 @@ class Batch(object):
         except IOError:
             self.errcode = -2
             self.errmsg = "ERROR (%d): Cannot open %s" % (self.errcode, fileName)
-            self.Log(self.errmsg)
+            self.log(self.errmsg)
             return (False,[])
         #---
 
@@ -735,39 +735,39 @@ class Batch(object):
         except:
             self.errcode = -3
             self.errmsg = "ERROR (%d): Cannot read from %s" % (self.errcode, fileName)
-            self.Log(self.errmsg)
+            self.log(self.errmsg)
             return (False,[])
         #---
 
         f.close()
 
-        retBuf = TextProcessor.RStrip(retBuf)
+        retBuf = TextProcessor.rstrip_all(retBuf)
         #retBuf = TextProcessor.RemoveEmptyLines(retBuf)
 
         if len(retBuf)<1:
             warning = "Warning: empty file %s" % (fileName)
-            self.Log(self.errmsg)
+            self.log(self.errmsg)
         #-- end if
 
         return (True,retBuf)
     #---
 
-    def ReadFile (self, fileName):
+    def read_file (self, fileName):
         """ Read file """
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        (res,self.text) = self._ReadNewBuffer(fileName)
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
+        (res,self.text) = self._read_new_buffer(fileName)
         return res
     #---
 
-    def WriteFile (self, fileName, strArray=None):
+    def write_file (self, fileName, strArray=None):
         """ Write file """
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         self.errcode = 0
         self.lastWrittenFile = fileName
         self.lastBackupFile = ''
         if os.path.isfile(fileName):
             self.lastBackupFile = fileName + '.bak'
-            self.Log('Saving backup %s' % self.lastBackupFile)
+            self.log('Saving backup %s' % self.lastBackupFile)
             shutil.copy(fileName, self.lastBackupFile)
         #-- end if
 
@@ -784,44 +784,44 @@ class Batch(object):
             #--
             fileToSave.flush()
             fileToSave.close()
-            self.Log("Saved %d lines to %s" % (len(bufferToSave),fileName))
+            self.log("Saved %d lines to %s" % (len(bufferToSave),fileName))
             return True
         except:
             self.errcode = -2
             self.errmsg = "ERROR (%d): Cannot write to %s" % (self.errcode, fileName)
-            self.Log(self.errmsg)
+            self.log(self.errmsg)
             return False
         return False
     #---
 
-    def DiffLastFileWrite (self):
+    def _diff_last_file_write (self):
         """ Diff last written file """
         if os.path.isfile(self.lastWrittenFile) and os.path.isfile(self.lastBackupFile):
 
             with tempfile.NamedTemporaryFile(dir=tempfile._get_default_tempdir(), delete=False) as tmpfile:
                 diffName = tmpfile.name
 
-            self._HiddenRun('diff %s %s > %s' % (self.lastBackupFile,self.lastWrittenFile,diffName))
-            (res,diffBuffer) = self._ReadNewBuffer(diffName)
+            self._run_silent('diff %s %s > %s' % (self.lastBackupFile,self.lastWrittenFile,diffName))
+            (res,diffBuffer) = self._read_new_buffer(diffName)
             if res:
                 offset = '    '
                 header = '====== DIFF in %s ======' % self.lastWrittenFile
                 footer = '='*len(header)
-                self.LogExtend(TextProcessor.Format(diffBuffer, offset, header,footer))
+                self.log_extend(TextProcessor.format(diffBuffer, offset, header,footer))
             #---
             try:
                 os.remove(diffName)
             except:
-                self.Log("Warning: Cannot delete temp file in Diff function")
+                self.log("Warning: Cannot delete temp file in Diff function")
             #---
         #-- end if
         return True
     #---
 
-    def AddLinesToFile(self, fileName, lines):
+    def append_to_file(self, fileName, lines):
         """ append text to file """
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        if not self.ReadFile(fileName):
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
+        if not self.read_file(fileName):
             return False
 
         tempName = TextProcessor.random_string(8) + '.tmp'
@@ -830,28 +830,28 @@ class Batch(object):
 
         self.text.extend(lines)
         if self.debug:
-            self.Log("Added %d lines to %s" % (len(lines),fileName))
+            self.log("Added %d lines to %s" % (len(lines),fileName))
 
-        if not self.WriteFile(fileName):
+        if not self.write_file(fileName):
             return False
 
         if self.debug:
-            self.DiffLastFileWrite()
+            self._diff_last_file_write()
 
         return True
     #---------------------
 
-    def ReplaceLineInFile(self, fileName, pattern, replacement, useRegEx=False):
+    def replace_line_in_file(self, fileName, pattern, replacement, useRegEx=False):
         """ open file, replace line, save """
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        if not self.ReadFile(fileName):
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
+        if not self.read_file(fileName):
             return False
 
-        pos = TextProcessor.SearchForward(self.text,pattern)             # Find the configuration line
+        pos = TextProcessor.search_forward(self.text,pattern)             # Find the configuration line
         if (pos<0):                                                     # if line not found
             self.errcode = -3
             self.errmsg = "WARNING (%d): Cannot find %s in %s" % (self.errcode,pattern, fileName)
-            self.Log(self.errmsg)
+            self.log(self.errmsg)
             return False
 
         if useRegEx:
@@ -859,75 +859,75 @@ class Batch(object):
         else:
             self.text[pos] = replacement
 
-        if not self.WriteFile(fileName):
+        if not self.write_file(fileName):
             return False
 
         if self.debug:
-            self.DiffLastFileWrite()
+            self._diff_last_file_write()
 
         return True
     #---------------------
 
 
-    def InsertFragmentAtPos(self, fileName, pos, fragment):
+    def insert_fragment_at_pos(self, fileName, pos, fragment):
         """ open file, insert fragment at position, save """
         retVal = False
         myName = (sys._getframe(0)).f_code.co_name
-        self.Log('--> %s' % myName)
+        self.log('--> %s' % myName)
 
         while True: # Single exit point function
-            if not self.ReadFile(fileName):
+            if not self.read_file(fileName):
                 break
             #---
-            self.text = TextProcessor.Insert(self.text,pos,fragment)
+            self.text = TextProcessor.insert_fragment(self.text,pos,fragment)
 
-            if not self.WriteFile(fileName):
+            if not self.write_file(fileName):
                 break
             #---
 
             if self.debug:
-                self.DiffLastFileWrite()
+                self._diff_last_file_write()
             #---
 
             retVal = True
             break # Single exit point function must break at the end
         #---
 
-        self.Log('<-- %s' % myName)
+        self.log('<-- %s' % myName)
         return retVal
     #---------------------
 
 
-    def InsertFragmentAfterLine(self, fileName, pattern, fragment):
+    def insert_fragment_at_marker(self, fileName, pattern, fragment):
         """ open file, insert fragment at marker, save """
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        if not self.ReadFile(fileName):
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
+        if not self.read_file(fileName):
             return False
 
-        pos = TextProcessor.SearchForward(self.text,pattern)
+        pos = TextProcessor.search_forward(self.text,pattern)
         if pos>0:
-            return self.InsertFragmentAtPos(fileName, pos+1, fragment)
+            return self.insert_fragment_at_pos(fileName, pos+1, fragment)
 
         return False
     #---------------------
 
 
-    def DeleteFragmentBetween(self, fileName, startPattern, endPattern, inclusive=False):
+    def delete_fragment_between_markers(self, fileName, startPattern, endPattern, inclusive=False):
         """ open file, delete fragment between markers, save """
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        if not self.ReadFile(fileName):
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
+        if not self.read_file(fileName):
             return False
 
-        posStart = TextProcessor.SearchForward(self.text,startPattern)
+        posStart = TextProcessor.search_forward(self.text,startPattern)
         if posStart<0:
-            self.Log("Cannot find start pattern %s" % startPattern)
+            self.log("Cannot find start pattern %s" % startPattern)
             return False
 
-        self.Log("Found start pattern %s at %d" % (startPattern,posStart))
+        self.log("Found start pattern %s at %d" % (startPattern,posStart))
         # start search from the position of start pattern
-        posEnd = TextProcessor.SearchForward(self.text,endPattern,posStart)
+        posEnd = TextProcessor.search_forward(self.text,endPattern,posStart)
         if posEnd<0:
-            self.Log("Cannot find end pattern %s" % endPattern)
+            self.log("Cannot find end pattern %s" % endPattern)
             return False
 
         newText = []
@@ -945,140 +945,148 @@ class Batch(object):
 
         self.text = newText
 
-        if not self.WriteFile(fileName):
+        if not self.write_file(fileName):
             return False
 
         if self.debug:
-            self.DiffLastFileWrite()
+            self._diff_last_file_write()
 
         return True
     #---------------------
 
 
-    def DeleteLinesFromFile(self, fileName, pattern):
+    def delete_lines_from_file(self, fileName, pattern):
         """ open file, delete lines matching pattern, save """
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        if not self.ReadFile(fileName):
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
+        if not self.read_file(fileName):
             return False
 
-        self.text = TextProcessor.FilterNot(self.text,pattern)
+        self.text = TextProcessor.filter_not(self.text,pattern)
 
-        self.text = TextProcessor.Insert(self.text,pos,fragment)
+        self.text = TextProcessor.insert_fragment(self.text,pos,fragment)
 
-        if not self.WriteFile(fileName):
+        if not self.write_file(fileName):
             return False
 
         if self.debug:
-            self.DiffLastFileWrite()
+            self._diff_last_file_write()
 
         return True
     #---------------------
 
 
-    def Print(self, strMessage):
-        self.Log(strMessage)
+    def prn(self, strMessage):
+        """ print and save log """
+        self.log(strMessage)
         if not self.quiet:
             print (strMessage)
         return True
     #--
 
 
-    def Exit(self, retCode=0, message='', log=''):
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
+    def exit(self, retCode=0, message='', log=''):
+        """ exit script """
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         if message!='':
-            self.log.append(strMessage)
+            self.logList.append(strMessage)
             print (message)
         #---
-        self.Log('Exit script with code %d' % retCode)
+        self.log('Exit script with code %d' % retCode)
         exit(retCode)
     #--
 
-    def FatalError(self, message):
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
+    def fatal_error(self, message):
+        """ Fatal Error: save log and terminate """
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         retCode = -1
-        self.log.append(strMessage)
+        self.logList.append(strMessage)
         sys.stderr.write("%s\n" % message)
-        self.Log('Exit script with code %d' % retCode)
+        self.log('Exit script with code %d' % retCode)
         exit(retCode)
     #--
 
 
-    def Assert(self, condition, retCode, message, log=''):
+    def check_condition(self, condition, retCode, message, log=''):
+        """ Assert """
         if not condition:
             frame = sys._getframe(1)
             funName = frame.f_code.co_name
             line_number = frame.f_lineno
             filename = frame.f_code.co_filename
             message = 'Fatal exit on assert in %s (%s:%d)' % (funName, filename, filename)
-            self.FatalError(message)
+            self.fatal_error(message)
         return True
     #--
 
 
-    def FindFiles(self, mask='*.*', workDir=''):
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
+    def find_files(self, mask='*.*', workDir=''):
+        """ Find files mathing a mask """
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         if workDir=='':
             workDir = os.getcwd()
         #---
-        self.Log('Mask = %s, Path=%s' % (mask, workDir))
+        self.log('Mask = %s, Path=%s' % (mask, workDir))
         matches = []
         for root, dirnames, filenames in os.walk(workDir):
           for filename in fnmatch.filter(filenames, mask):
               matches.append(os.path.join(root, filename).replace("\\", "/"))
-        self.Log("<-- Found %d files" % len(matches))
+        self.log("<-- Found %d files" % len(matches))
         return matches
     #---
 
-    def FindSetOfFiles(self, masks=['*.*'], workDir=''):
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
+    def find_set_of_files(self, masks=['*.*'], workDir=''):
+        """ Find files by set of masks """
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         matches = []
         for mask in masks:
-            extMatches = self.FindFiles(mask,workDir)
+            extMatches = self.find_files(mask,workDir)
             if len(extMatches)>0:
                 matches.extend(extMatches)
             #---
         #---
-        self.Log("<-- Found %d files" % len(matches))
+        self.log("<-- Found %d files" % len(matches))
         return matches
     #---
 
-    def SplitFileName(self, fname):
+    def split_file_name(self, fname):
+        """ Split file name into path, name, and extension """
         rPath = os.path.dirname(fname)
         (rName, rExt) = os.path.splitext( os.path.basename(fname))
         return (rPath,rName,rExt)
     #---
 
-    def RunClean(self, command, workDir='', errorPattern=''):
-        self.Run(command, workDir)
+    def run_clean(self, command, workDir='', errorPattern=''):
+        """ Run command and ensure that it went w/o issues """
+        self.run(command, workDir)
         if (self.cret!=0):
 
-            self.Log("Terminating of RunClean, return code is not 0")
+            self.log("Terminating of RunClean, return code is not 0")
             header = '--- stdout of %s (%d) ---' % (command, self.cret)
             footer = '-'*len(header)
             offset = '    '
-            self.LogExtend(TextProcessor.Format(self.cout, offset, header, footer))
+            self.log_extend(TextProcessor.format(self.cout, offset, header, footer))
 
             header = '--- stderr of %s (%d) ---' % (command, self.cret)
             footer = '-'*len(header)
-            self.LogExtend(TextProcessor.Format(self.cerr, offset, header, footer))
+            self.log_extend(TextProcessor.format(self.cerr, offset, header, footer))
 
-            self.Exit(-1)
+            self.exit(-1)
         #---
 
         if len(errorPattern)>0:
             # pattern is given
-            if TextProcessor.SearchForward(self.cout, errorPattern)>-1:
-                print 'Pattern %s is found in stdout' % errorPattern
+            if TextProcessor.search_forward(self.cout, errorPattern)>-1:
+                self.log('Pattern %s is found in stdout' % errorPattern)
                 TextProcessor.Print(self.cout, '    ', '---- stdout of %s (%s) ----' % (command, self.cret), '------\n')
                 TextProcessor.Print(self.cerr, '    ', '---- stderr of %s (%s) ----' % (command, self.cret), '------\n')
-                self.Exit(-1)
+                self.exit(-1)
             #---
 
-            if TextProcessor.SearchForward(self.cerr, errorPattern)>-1:
-                print 'Pattern %s is found in stderr' % errorPattern
+            if TextProcessor.search_forward(self.cerr, errorPattern)>-1:
+                self.log('Pattern %s is found in stderr' % errorPattern)
                 TextProcessor.Print(self.cout, '    ', '---- stdout of %s (%s) ----' % (command, self.cret), '------\n')
                 TextProcessor.Print(self.cerr, '    ', '---- stderr of %s (%s) ----' % (command, self.cret), '------\n')
-                self.Exit(-1)
+                self.exit(-1)
             #---
         #---
         return
@@ -1090,30 +1098,31 @@ class Batch(object):
         return oneDirUp
     #---
 
-    def GetMACAddress(self, delimiter=':'):
+    def get_mac_address(self, delimiter=':'):
+        """ Get MAC address of the current system """
         retVal = ''
         while True:
-            self.Run('ifconfig -a | grep HWaddr', silent=True)
+            self.run('ifconfig -a | grep HWaddr', silent=True)
             if self.cret != 0:
-                self.Log("ERROR: Command execution error.")
+                self.log("ERROR: Command execution error.")
                 break # execution error
             #---
 
             if len(self.cout) < 1:
-                self.Log("ERROR: Command returned no output. Is pattern HWaddr missing?")
+                self.log("ERROR: Command returned no output. Is pattern HWaddr missing?")
                 break
             #---
 
             parts = re.split('\s+',self.cout[0])
             if len(parts) < 1:
-                self.Log("ERROR: Command output format. Is output format  differ from expected?")
+                self.log("ERROR: Command output format. Is output format  differ from expected?")
                 break
             #---
 
             rawStr = parts[4]
             byteStr = re.split(':',rawStr)
             if len(byteStr) < 6:
-                self.Log("ERROR: Parsing error. Is output format  differ from expected?")
+                self.log("ERROR: Parsing error. Is output format  differ from expected?")
                 break
             #---
 
@@ -1126,7 +1135,8 @@ class Batch(object):
     #---
 
 
-    def GenPyBin(self, exportData, objName, defaultFileLocation):
+    def _gen_pybin(self, exportData, objName, defaultFileLocation):
+        """ Generate script to restore binary file """
         f = open(objName+'.py', 'wt')
         f.write("#!/usr/bin/python\n")
         f.write("\n")
@@ -1148,7 +1158,7 @@ class Batch(object):
         f.write("def Extract(fileName='%s'):\n" % defaultFileLocation)
         f.write("    binObject=''\n")
 
-        dataArray = TextProcessor.Fold(exportData, 100)
+        dataArray = TextProcessor.fold(exportData, 100)
 
         for blk in dataArray:
             f.write("    binObject+='%s'\n" % blk)
@@ -1176,24 +1186,25 @@ class Batch(object):
 
 
     def bin2py(self, binFileName, pyObjectName):
-        self.Log('--> %s' % (sys._getframe(0)).f_code.co_name)
+        """ Generate Python script to restore binary file """
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         try:
-            self.Log('Converting %s to %s.py' % (binFileName, pyObjectName))
+            self.log('Converting %s to %s.py' % (binFileName, pyObjectName))
 
             original_data = open(binFileName, 'rb').read()
-            self.Log('Original   %8d bytes (%s)' % (len(original_data), hashlib.sha256(original_data).hexdigest()))
+            self.log('Original   %8d bytes (%s)' % (len(original_data), hashlib.sha256(original_data).hexdigest()))
 
             compressed = zlib.compress(original_data)
-            self.Log('Compressed %8d bytes (%s)' % (len(compressed), hashlib.sha256(compressed).hexdigest()))
+            self.log('Compressed %8d bytes (%s)' % (len(compressed), hashlib.sha256(compressed).hexdigest()))
 
             encoded = base64.b64encode(compressed)
-            self.Log('Encoded    %8d bytes (%s)' % (len(encoded), hashlib.sha256(encoded).hexdigest()))
+            self.log('Encoded    %8d bytes (%s)' % (len(encoded), hashlib.sha256(encoded).hexdigest()))
 
-            self.GenPyBin(encoded, pyObjectName, binFileName)
+            self._gen_pybin(encoded, pyObjectName, binFileName)
         except:
-            self.Log("Warning: something went wrong")
+            self.log("Warning: something went wrong")
         #---
-        self.Log('<-- %s' % (sys._getframe(0)).f_code.co_name)
+        self.log('<-- %s' % (sys._getframe(0)).f_code.co_name)
     #---
 
 #-- end of class
@@ -1201,8 +1212,7 @@ class Batch(object):
 
 
 if __name__ == "__main__":
-    head_description = "Shell Receipes Engine"
-    parser = argparse.ArgumentParser(description=head_description, \
+    parser = argparse.ArgumentParser(description="Shell Receipes Engine", \
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     # Global arguments
     parser.add_argument('--debug', action='store_true', default=False, help='Debug execution mode')
@@ -1210,38 +1220,43 @@ if __name__ == "__main__":
 
     subparsers = parser.add_subparsers(help='Supported commands', dest='command')
 
-    setup_parser = subparsers.add_parser('setup', help='Setup Python module')
-    setup_parser = subparsers.add_parser('install', help='Install shrec as system utility')
-    unitt_parser = subparsers.add_parser('unittest', help='Unit test the module')
-    debug_parser = subparsers.add_parser('debug', help='Debug new code')
+    SETUP_PRS = subparsers.add_parser('setup', help='Setup Python module')
+    INSTALL_PRS = subparsers.add_parser('install', help='Install shrec as system utility')
+    UTEST_PRS = subparsers.add_parser('unittest', help='Unit test the module')
+    DEBUG_PRS = subparsers.add_parser('debug', help='Debug new code')
 
-    recipe_parser = subparsers.add_parser('recipe', help='System configuration recipes')
-    rsp = recipe_parser.add_subparsers(help='Recipes', dest='recipe')
+    RECIPE_PRS = subparsers.add_parser('recipe', help='System configuration recipes')
+    RSP = RECIPE_PRS.add_subparsers(help='Recipes', dest='recipe')
 
-    description = "Enable or disable SSH access for root"
-    r001_parser = rsp.add_parser('enablerootssh', description=description, help='Enable root ssh')
-    r001_parser.add_argument('--no', action='store_true', default=False, help='Opposite operation')
+    R001 = RSP.add_parser('enablerootssh', \
+        description="Enable or disable SSH access for root", \
+        help='Enable root ssh')
+    R001.add_argument('--no', action='store_true', default=False, help='Opposite operation')
 
-    description = "Enable or disable kernel power managemennt functions"
-    r002_parser = rsp.add_parser('enablepm', description=description, help='Enable power management')
-    r002_parser.add_argument('--no', action='store_true', default=False, help='Opposite operation')
+    R002 = RSP.add_parser('enablepm', \
+        description="Enable or disable kernel power managemennt functions", \
+        help='Enable power management')
+    R002.add_argument('--no', action='store_true', default=False, help='Opposite operation')
 
-    description = "Enable or disable IP V.6 support"
-    r003_parser = rsp.add_parser('enableip6', description=description, help='Enable support of IP v.6')
-    r003_parser.add_argument('--no', action='store_true', default=False, help='Opposite operation')
+    R003 = RSP.add_parser('enableip6', \
+        description="Enable or disable IP V.6 support", \
+        help='Enable support of IP v.6')
+    R003.add_argument('--no', action='store_true', default=False, help='Opposite operation')
 
-    description = "Enable or disable TCG SED support"
-    r003_parser = rsp.add_parser('enabletcg', description=description, help='Enable support of TCG storage')
-    r003_parser.add_argument('--no', action='store_true', default=False, help='Opposite operation')
+    R004 = RSP.add_parser('enabletcg', \
+        description="Enable or disable TCG SED support", \
+        help='Enable support of TCG storage')
+    R004.add_argument('--no', action='store_true', default=False, help='Opposite operation')
 
-    description = "Set hostname"
-    r003_parser = rsp.add_parser('sethostname', description=description, help='Set hostname from MAC or Random')
-    r003_parser.add_argument('--naming', action='store', default='mac', help='Naming: {mac,rnd}')
-
+    R005 = RSP.add_parser('sethostname', \
+        "Set hostname", \
+        help='Set hostname from MAC or Random')
+    R005.add_argument('--naming', action='store', default='mac', help='Naming: {mac,rnd}')
 
     args = parser.parse_args()
 
     if (args.command == 'setup'):
+        batch = Batch(args.debug, args.quiet, "auto")
         setupScript = [
                 "#!/usr/bin/env python",
                 "from distutils.core import setup",
@@ -1251,11 +1266,11 @@ if __name__ == "__main__":
                 ""
             ]
         #---
-        TextProcessor.Save(setupScript, 'temp_setup.py')
-        batch.Run('python temp_setup.py install')
+        TextProcessor.save(setupScript, 'temp_setup.py')
+        batch.run('python temp_setup.py install')
         os.remove('temp_setup.py')
         TextProcessor.Print(batch.cout,'','-- installation log --')
-        batch.Exit(0)
+        batch.exit(0)
     #--
 
     if (args.command == 'unittest'):
@@ -1296,32 +1311,32 @@ if __name__ == "__main__":
         if (args.recipe == 'enablerootssh'):
             batch = Batch(args.debug, args.quiet, "auto")
             if batch.system != 'Linux': # Check the current platform
-                batch.Print("Current platform is %s" % batch.system)
-                batch.Print("Command is supported only for Linux platforms, terminating")
-                batch.Print("See details in %s" % batch.LogFile)
-                batch.Exit(0)
+                batch.prn("Current platform is %s" % batch.system)
+                batch.prn("Command is supported only for Linux platforms, terminating")
+                batch.prn("See details in %s" % batch.LogFile)
+                batch.exit(0)
             #---
             if args.no is False:
                 # Normal operation
-                batch.ReplaceLineInFile('/etc/ssh/sshd_config', 'PermitRootLogin', 'PermitRootLogin yes')
+                batch.replace_line_in_file('/etc/ssh/sshd_config', 'PermitRootLogin', 'PermitRootLogin yes')
             else:
-                batch.ReplaceLineInFile('/etc/ssh/sshd_config', 'PermitRootLogin', 'PermitRootLogin without-password')
+                batch.replace_line_in_file('/etc/ssh/sshd_config', 'PermitRootLogin', 'PermitRootLogin without-password')
             #---
-            batch.Run('service sshd restart')
-            batch.Exit(0)
+            batch.run('service sshd restart')
+            batch.exit(0)
         #---
 
         if (args.recipe == 'enabletcg'):
             batch = Batch(args.debug, args.quiet, "auto")
             if batch.system != 'Linux': # Check the current platform
-                batch.Print("Current platform is %s" % batch.system)
-                batch.Print("Command is supported only for Linux platforms, terminating")
-                batch.Print("See details in %s" % batch.LogFile)
-                batch.Exit(0)
+                batch.prn("Current platform is %s" % batch.system)
+                batch.prn("Command is supported only for Linux platforms, terminating")
+                batch.prn("See details in %s" % batch.LogFile)
+                batch.exit(0)
             #---
-            print( batch.GetMACAddress('').upper() )
+            print( batch.get_mac_address('').upper() )
             if args.no is False:
-                batch.Print("Enabling support of TCG storage")
+                batch.prn("Enabling support of TCG storage")
                 # Normal operation
                 # /etc/default/grub
                 # GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
@@ -1329,7 +1344,7 @@ if __name__ == "__main__":
                 # run update-grub
                 #
             else:
-                batch.Print("Disabling support of TCG storage")
+                batch.prn("Disabling support of TCG storage")
                 # Reverse operation
                 # /etc/default/grub
                 # GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
@@ -1337,43 +1352,44 @@ if __name__ == "__main__":
                 # run update-grub
                 #
             #---
-            batch.Exit(0)
+            batch.exit(0)
         #---
 
         if (args.recipe == 'sethostname'):
             # https://www.linuxquestions.org/questions/linux-networking-3/mac-address-based-hostname-333067/
             batch = Batch(args.debug, args.quiet, "auto")
             if batch.system != 'Linux': # Check the current platform
-                batch.Print("Current platform is %s" % batch.system)
-                batch.Print("Command is supported only for Linux platforms, terminating")
-                batch.Print("See details in %s" % batch.LogFile)
-                batch.Exit(0)
+                batch.prn("Current platform is %s" % batch.system)
+                batch.prn("Command is supported only for Linux platforms, terminating")
+                batch.prn("See details in %s" % batch.LogFile)
+                batch.exit(0)
             #---
             exitCode = -1
             while True:
+                new_host_name = ''
                 if args.naming == 'mac':
-                    newHostName = batch.GetMACAddress('').upper()
+                    new_host_name = batch.get_mac_address('').upper()
                 elif args.naming == 'rnd':
-                    newHostName = TextProcessor.random_string(8)
+                    new_host_name = TextProcessor.random_string(8)
                 else:
-                    batch.Print("ERROR: Unsupported naming scheme %s" % args.naming)
+                    batch.prn("ERROR: Unsupported naming scheme %s" % args.naming)
                     break
                 #---
 
-                if len(newHostName)==0:
-                    batch.Print("ERROR: Cannot get new hostname.")
+                if not (new_host_name == ''):
+                    batch.prn("ERROR: Cannot get new hostname.")
                     break
                 #---
 
-                batch.Run('hostname %s' % newHostName, silent=True)
+                batch.run('hostname %s' % new_host_name, silent=True)
                 if batch.cret != 0:
-                    batch.Print("ERROR: Command execution error.")
+                    batch.prn("ERROR: Command execution error.")
                     break
                 #---
 
 
-                if not batch.WriteFile('/etc/hostname', [newHostName]):
-                    batch.Print("ERROR: writing /etc/hostname")
+                if not batch.write_file('/etc/hostname', [new_host_name]):
+                    batch.prn("ERROR: writing /etc/hostname")
                     break
                 #---
 
@@ -1382,7 +1398,7 @@ if __name__ == "__main__":
                 exitCode = 0
                 break
             #---
-            batch.Exit(exitCode)
+            batch.exit(exitCode)
         #---
 
 
@@ -1392,12 +1408,12 @@ if __name__ == "__main__":
 
 
     if (args.command == 'debug'):
-        batch = Batch(args.debug, args.quiet, "auto")
-        batch.Print("Put your code here")
-        batch.Print(batch.LogFile)
-        batch.Run("ping -c 3 127.0.0.1")
-        print (batch.cret)
-        batch.Exit(0)
+        BATCH = Batch(args.debug, args.quiet, "auto")
+        BATCH.prn("Put your code here")
+        BATCH.prn(batch.LogFile)
+        BATCH.run("ping -c 3 127.0.0.1")
+        print (BATCH.cret)
+        BATCH.exit(0)
     #--
 
 
