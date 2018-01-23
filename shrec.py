@@ -1069,23 +1069,24 @@ class Batch(object):
             # pattern is given
             if TextProcessor.SearchForward(self.cout, errorPattern)>-1:
                 print 'Pattern %s is found in stdout' % errorPattern
-                TextProcessor.Print(self.cout,'    ','---- stdout of %s (%s) ----' % (command, self.cret), '------\n')
-                TextProcessor.Print(self.cerr,'    ','---- stderr of %s (%s) ----' % (command, self.cret), '------\n')
+                TextProcessor.Print(self.cout, '    ', '---- stdout of %s (%s) ----' % (command, self.cret), '------\n')
+                TextProcessor.Print(self.cerr, '    ', '---- stderr of %s (%s) ----' % (command, self.cret), '------\n')
                 self.Exit(-1)
             #---
 
             if TextProcessor.SearchForward(self.cerr, errorPattern)>-1:
                 print 'Pattern %s is found in stderr' % errorPattern
-                TextProcessor.Print(self.cout,'    ','---- stdout of %s (%s) ----' % (command, self.cret), '------\n')
-                TextProcessor.Print(self.cerr,'    ','---- stderr of %s (%s) ----' % (command, self.cret), '------\n')
+                TextProcessor.Print(self.cout, '    ', '---- stdout of %s (%s) ----' % (command, self.cret), '------\n')
+                TextProcessor.Print(self.cerr, '    ', '---- stderr of %s (%s) ----' % (command, self.cret), '------\n')
                 self.Exit(-1)
             #---
         #---
         return
     #---
 
-    def OneDirUp(self,dirName):
-        oneDirUp = re.sub('/[^/]+$','',dirName)
+    def one_dir_up(self,dirName):
+        """ One directory up tree """
+        oneDirUp = re.sub('/[^/]+$', '', dirName)
         return oneDirUp
     #---
 
@@ -1201,41 +1202,41 @@ class Batch(object):
 
 if __name__ == "__main__":
     head_description = "Shell Receipes Engine"
-    parser = argparse.ArgumentParser(description        =   head_description,
-                                     formatter_class    =   argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(description=head_description, \
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     # Global arguments
-    parser.add_argument('--debug',   action='store_true', default=False,        help='Debug execution mode')
-    parser.add_argument('--quiet',   action='store_true', default=False,        help='Quiet execution mode')
+    parser.add_argument('--debug', action='store_true', default=False, help='Debug execution mode')
+    parser.add_argument('--quiet', action='store_true', default=False, help='Quiet execution mode')
 
     subparsers = parser.add_subparsers(help='Supported commands', dest='command')
 
-    setup_parser = subparsers.add_parser('setup',                  help='Setup Python module')
-    setup_parser = subparsers.add_parser('install',                help='Install shrec as system utility')
-    unitt_parser = subparsers.add_parser('unittest',               help='Unit test the module')
-    debug_parser = subparsers.add_parser('debug',                  help='Debug new code')
+    setup_parser = subparsers.add_parser('setup', help='Setup Python module')
+    setup_parser = subparsers.add_parser('install', help='Install shrec as system utility')
+    unitt_parser = subparsers.add_parser('unittest', help='Unit test the module')
+    debug_parser = subparsers.add_parser('debug', help='Debug new code')
 
-    recipe_parser = subparsers.add_parser('recipe',                  help='System configuration recipes')
+    recipe_parser = subparsers.add_parser('recipe', help='System configuration recipes')
     rsp = recipe_parser.add_subparsers(help='Recipes', dest='recipe')
 
     description = "Enable or disable SSH access for root"
-    r001_parser = rsp.add_parser('enablerootssh',  description=description,     help='Enable root ssh')
-    r001_parser.add_argument('--no',  action='store_true', default=False,       help='Opposite operation')
+    r001_parser = rsp.add_parser('enablerootssh', description=description, help='Enable root ssh')
+    r001_parser.add_argument('--no', action='store_true', default=False, help='Opposite operation')
 
     description = "Enable or disable kernel power managemennt functions"
-    r002_parser = rsp.add_parser('enablepm',  description=description,          help='Enable power management')
-    r002_parser.add_argument('--no',  action='store_true', default=False,       help='Opposite operation')
+    r002_parser = rsp.add_parser('enablepm', description=description, help='Enable power management')
+    r002_parser.add_argument('--no', action='store_true', default=False, help='Opposite operation')
 
     description = "Enable or disable IP V.6 support"
-    r003_parser = rsp.add_parser('enableip6',  description=description,         help='Enable support of IP v.6')
-    r003_parser.add_argument('--no',  action='store_true', default=False,       help='Opposite operation')
+    r003_parser = rsp.add_parser('enableip6', description=description, help='Enable support of IP v.6')
+    r003_parser.add_argument('--no', action='store_true', default=False, help='Opposite operation')
 
     description = "Enable or disable TCG SED support"
-    r003_parser = rsp.add_parser('enabletcg',  description=description,         help='Enable support of TCG storage')
-    r003_parser.add_argument('--no',  action='store_true', default=False,       help='Opposite operation')
+    r003_parser = rsp.add_parser('enabletcg', description=description, help='Enable support of TCG storage')
+    r003_parser.add_argument('--no', action='store_true', default=False, help='Opposite operation')
 
     description = "Set hostname"
-    r003_parser = rsp.add_parser('sethostname',  description=description,       help='Set hostname from MAC or Random')
-    r003_parser.add_argument('--naming',  action='store', default='mac',          help='Naming: {mac,rnd}')
+    r003_parser = rsp.add_parser('sethostname', description=description, help='Set hostname from MAC or Random')
+    r003_parser.add_argument('--naming', action='store', default='mac', help='Naming: {mac,rnd}')
 
 
     args = parser.parse_args()
