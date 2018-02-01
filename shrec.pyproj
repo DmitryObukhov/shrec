@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{9ab1302a-7d58-4ed2-a4c9-e7e1af175d10}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>shrec.py</StartupFile>
+    <StartupFile>shrecunittest.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>

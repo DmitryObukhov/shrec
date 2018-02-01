@@ -32,7 +32,7 @@ class ShellWrapper(object):
     def __init__(self, debug=False, quiet=True, log_file=""):
         """ Class Constructor """
         frame = sys._getframe(1)
-        callerScript = frame.f_code.co_filename
+        caller_script = frame.f_code.co_filename
         self.error_count = 0
         self.debug = debug      # enable debug features and save extended log
         self.quiet = quiet
@@ -43,7 +43,7 @@ class ShellWrapper(object):
         self.dist       = platform.dist()
         self.errcode = 0        # error code of the last command
         self.errmsg = ''        # diagnostic message
-        self.logList = []           # debug log
+        self.log_list = []           # debug log
         self.text = []
         self.output = []        # copy of print
         self.replay = []        # replay buffer
@@ -63,20 +63,20 @@ class ShellWrapper(object):
 
 
 
-        self.LogFile = log_file
-        if len(self.LogFile)>0:
-            if self.LogFile == "auto":
-                fn_split = self.split_file_name(callerScript)
-                self.LogFile = os.path.normpath(tempfile.gettempdir() + '/' + fn_split['name'] + '__' + self.time_stamp() + '.tmp')
+        self.log_file = log_file
+        if len(self.log_file)>0:
+            if self.log_file == "auto":
+                fn_split = self.split_file_name(caller_script)
+                self.log_file = os.path.normpath(tempfile.gettempdir() + '/' + fn_split['name'] + '__' + self.timestamp() + '.tmp')
             #--
         #---
-        self.supressRunOutput = False
-        self.lastWrittenFile = ''
-        self.lastBackupFile = ''
-        self.caller = callerScript
+        self.supress_run_output = False
+        self.last_written_file = ''
+        self.last_backup_file = ''
+        self.caller = caller_script
         self.logBaseline = 3
         self.logOffsetStr = '    '
-        self.log('caller=%s' % callerScript)
+        self.log('caller=%s' % caller_script)
         self.log('self=%s' % __file__)
         if self.debug:
             self.log('==== System information')
@@ -103,41 +103,66 @@ class ShellWrapper(object):
         return "\"%s\"" % string_value
     #--- end of method
 
-    def time_stamp(self, format_str = '%Y_%m_%d_%H%M%S%f'):
+    @staticmethod
+    def timestamp(format_str = '%Y_%m_%d_%H%M%S%f'):
         """  --> '2018_01_01_1234569999' """
         return datetime.now().strftime(format_str)
     #--- end of method
 
-    def random_string(self, length, charset=''):
+    @staticmethod
+    def random_string(length, charset=''):
         """  --> 'lsdahfl897klj' """
         if charset=='':
             charset = string.ascii_uppercase + string.digits
         return ''.join(random.choice(charset) for _ in range(length))
     #--- end of method
 
-
-    def parse_shell_output(self, shell_output_str):
-        """  --> 'lsdahfl897klj' """
+    @staticmethod
+    def rstrip_all(txt):
+        """ for each y = rstrip(x) """
         ret_val = []
-        ret_val = re.split('[\r\n]+', shell_output_str)
-        for idx in range(0,len(ret_val)):
-            ret_val[idx] = ret_val[idx].rstrip()
+        for i in range(0,len(txt)):
+            ret_val.append(txt[i].rstrip())
         #---
         return ret_val
-    #--- end of method
+    #---------------------
 
+    @staticmethod
+    def remove_empty_lines(txt):
+        """ RemoveEmptyLines """
+        ret_val = []
+        for i in range(0,len(txt)):
+            if len(txt[i])>0:
+                ret_val.append(txt[i])
+            #---
+        #---
+        return ret_val
+    #---------------------
 
-    def debug_info(self, message_str):
-        """  --> Debug info """
-        frame = sys._getframe(1)
-        funName = frame.f_code.co_name
-        line_number = frame.f_lineno
-        filename = frame.f_code.co_filename
-        return ( "%s : %s (%s:%04d) : %s" % (self.time_stamp('%H.%M.%S.%f'), funName, filename, line_number, message_str))
-    #--- end of method
+    @staticmethod
+    def save(text, file_name):
+        """  save text to file """
+        file_to_save = open(file_name, 'w')
+        for item in text:
+            file_to_save.write("%s\n" % item)
+        #---
+        file_to_save.flush()
+        file_to_save.close()
+    #---
 
+    @staticmethod
+    def append(text, file_name):
+        """  append text to file """
+        file_to_save = open(file_name, 'a')
+        for item in text:
+            file_to_save.write("%s\n" % item)
+        #---
+        file_to_save.flush()
+        file_to_save.close()
+    #---
 
-    def read(self, file_name_str, cleanUp=True):
+    @staticmethod
+    def read(file_name_str, cleanUp=True):
         """  <FILE> --> [str,str,str] """
         ret_val = []
         try:
@@ -148,28 +173,13 @@ class ShellWrapper(object):
             ret_val = f.readlines()
             f.close()
             if cleanUp == True:
-                ret_val = self.rstrip_all(ret_val)
-                ret_val = self.remove_empty_lines(ret_val)
+                ret_val = ShellWrapper.rstrip_all(ret_val)
+                ret_val = ShellWrapper.remove_empty_lines(ret_val)
         return ret_val
     #---------------------
 
-    def unify_length(self, s, maxlen=-1, minlen=-1, spacer=' '):
-        """  Cut string or add spacers to keep length for all lines """
-        retStr = s
-        curLen = len(retStr)
-        # if maxLen defined, keep the left portion
-        if maxlen>0 and (curLen > maxlen):
-            retStr = retStr[:maxlen]
-
-        # if min len is defined, space trail string
-        curLen = len(retStr)
-        if minlen>0 and (curLen < minlen):
-            retStr = retStr + spacer*(minlen-curLen)
-
-        return retStr
-    #--
-
-    def fold(self, long_str, width):
+    @staticmethod
+    def fold(long_str, width=80):
         """  longStr --> [str1,str2,str3] """
         ret_val = []
         tmp = long_str
@@ -187,8 +197,225 @@ class ShellWrapper(object):
         return ret_val
     #---
 
+    @staticmethod
+    def replace_all(text, pattern, replacement):
+        """  replace pattern in all strings """
+        ret_val = []
+        for idx in range(0, len(text)):
+            cur = re.sub(pattern, replacement, text[idx])
+            ret_val.append(cur)
+        #---
+        return ret_val
+    #---------------------
+
+    @staticmethod
+    def remove_duplicates(txt):
+        """ Remove duplicated lines """
+        output = []
+        for x in txt:
+            if x not in output:
+                output.append(x)
+            #--
+        #--
+        return output
+    #---------------------
+
+    @staticmethod
+    def each_line(txt, function_name):
+        """ for each line ret[x] = functionStr(inp[x]) """
+        ret_val = []
+        for i in range(0,len(txt)):
+            x = txt[i]
+            y = function_name(x)
+            ret_val.append(y)
+        #---
+        return ret_val
+    #--
+
+    @staticmethod
+    def maxlen(txt):
+        """ Max length of a line in text """
+        max_len = len(txt[0])
+        for x in txt:
+            if len(x)>max_len:
+                max_len = len(x)
+            #---
+        #---
+        return max_len
+    #---------------------
+
+    @staticmethod
+    def longest_line(txt):
+        """ Max length of a line in text """
+        max_len = len(txt[0])
+        longest = txt[0]
+        for x in txt:
+            if len(x)>max_len:
+                max_len = len(x)
+                longest = x
+            #---
+        #---
+        return longest
+    #---------------------
+
+
+
+    @staticmethod
+    def minlen(txt):
+        """ Min length of a line in text """
+        min_len = len(txt[0])
+        for x in txt:
+            if len(x)<min_len:
+                min_len = len(x)
+            #---
+        #---
+        return min_len
+    #---------------------
+
+    @staticmethod
+    def shortest_line(txt):
+        """ Min length of a line in text """
+        min_len = len(txt[0])
+        shortest = txt[0]
+        for x in txt:
+            if len(x)<min_len:
+                min_len = len(x)
+                shortest = x
+            #---
+        #---
+        return shortest
+    #---------------------
+
+    @staticmethod
+    def filter(txt, pattern):
+        """ returns matching lines as new list """
+        filtered = []
+        for i in range(0,len(txt)):
+            x = re.findall(pattern, txt[i])
+            if len(x)>0:
+                filtered.append(txt[i])
+            #--
+        #--
+        return filtered
+    #---------------------
+
+    @staticmethod
+    def filter_not(txt, pattern):
+        """ returns not matching lines as new list """
+        filtered = []
+        for i in range(0,len(txt)):
+            x = re.findall(pattern, txt[i])
+            if len(x)==0:
+                filtered.append(txt[i])
+            #--
+        #--
+        return filtered
+    #---------------------
+
+    @staticmethod
+    def search_forward(txt, pattern, start=0):
+        """ starting from start_idx searching forward for pattern. Returns index or -1 if not found """
+        for i in range(start,len(txt)):
+            x = re.findall(pattern, txt[i])
+            if len(x)>0:
+                return i
+        return -1
+    #---------------------
+
+    @staticmethod
+    def search_backward(txt, pattern, start=-1):
+        """ starting from start_idx searching backward for pattern. Returns index or -1 if not found """
+        if start<0:
+            start = len(txt)-1
+        for i in range(start,-1,-1):
+            x = re.findall(pattern, txt[i])
+            if len(x)>0:
+                return i
+        return -1
+    #---------------------
+
+    @staticmethod
+    def count_matches(txt, pattern):
+        """ Returns number of lines matching the pattern """
+        ret_val = 0
+        for i in range(0,len(txt)):
+            x = re.findall(pattern, txt[i])
+            if len(x)>0:
+                ret_val += 1    # if pattern found, count in
+            #--
+        #--
+        return ret_val
+    #---------------------
+
+    @staticmethod
+    def to_string(txt, delimiter=' '):
+        """ text to string """
+        retStr = ""
+        maxidx = len(txt)
+        for i in range(0,maxidx):
+            retStr += txt[i]
+            if i<(maxidx-1):
+                retStr += delimiter
+            #---
+        #---
+        return retStr
+    #---------------------
+
+    #######################################################################################################
+    #     ____  ____    _   _ _   _ ___ _____ _____ _____ ____ _____ _____ ____
+    #    |___ \| __ )  | | | | \ | |_ _|_   _|_   _| ____/ ___|_   _| ____|  _ \
+    #      __) |  _ \  | | | |  \| || |  | |   | | |  _| \___ \ | | |  _| | | | |
+    #     / __/| |_) | | |_| | |\  || |  | |   | | | |___ ___) || | | |___| |_| |
+    #    |_____|____/   \___/|_| \_|___| |_|   |_| |_____|____/ |_| |_____|____/
+    #
+    #######################################################################################################
+
+
+
+    def parse_shell_output(self, shell_output_str):
+        """  --> 'lsdahfl897klj' """
+        # todo: unittest
+        ret_val = []
+        ret_val = re.split('[\r\n]+', shell_output_str)
+        for idx in range(0,len(ret_val)):
+            ret_val[idx] = ret_val[idx].rstrip()
+        #---
+        return ret_val
+    #--- end of method
+
+
+    def debug_info(self, message_str):
+        """  --> Debug info """
+        # todo: unittest
+        frame = sys._getframe(1)
+        funName = frame.f_code.co_name
+        line_number = frame.f_lineno
+        filename = frame.f_code.co_filename
+        return ( "%s : %s (%s:%04d) : %s" % (self.timestamp('%H.%M.%S.%f'), funName, filename, line_number, message_str))
+    #--- end of method
+
+
+    def unify_length(self, s, maxlen=-1, minlen=-1, spacer=' '):
+        """  Cut string or add spacers to keep length for all lines """
+        # todo: unittest
+        retStr = s
+        curLen = len(retStr)
+        # if maxLen defined, keep the left portion
+        if maxlen>0 and (curLen > maxlen):
+            retStr = retStr[:maxlen]
+
+        # if min len is defined, space trail string
+        curLen = len(retStr)
+        if minlen>0 and (curLen < minlen):
+            retStr = retStr + spacer*(minlen-curLen)
+
+        return retStr
+    #--
+
+
     def fmttxt(self, t, indent="", header="", footer="", maxlen=-1, minlen=-1, line_numbering_start=-1):
         """  [str1,str2] --> [header, offset + str1, offset + str2, footer]"""
+        # todo: unittest
         retTxt = []
         line_number_str = ""
         line_number_placeholder = ''
@@ -222,6 +449,7 @@ class ShellWrapper(object):
 
     def prntxt(self, t, indent="", header="", footer="", maxlen=-1, minlen=-1, line_numbering_start=-1):
         """  print the list of strings """
+        # todo: unittest
         if len(t)>0:
             tmp = self.fmttxt(t, indent, header, footer, maxlen, minlen, line_numbering_start)
             for i in range(0,len(tmp)):
@@ -231,84 +459,9 @@ class ShellWrapper(object):
     #---
 
 
-    def save(self, text, file_name):
-        """  save text to file """
-        fileToSave = open(file_name, 'w')
-        for item in text:
-            fileToSave.write("%s\n" % item)
-        #---
-        fileToSave.flush()
-        fileToSave.close()
-    #---
-
-    def append(self, text, file_name):
-        """  append text to file """
-        fileToSave = open(file_name, 'a')
-        for item in text:
-            fileToSave.write("%s\n" % item)
-        #---
-        fileToSave.flush()
-        fileToSave.close()
-    #---
-
-
-
-    def replace_all(self, t, pattern, replacement):
-        """  replace pattern in all strings """
-        ret_val = []
-        for i in range(0,len(t)):
-            cur = t[i]
-            while re.match(pattern,cur):
-                cur = re.sub(pattern, replacement, cur)
-            #---
-            ret_val.append(cur)
-        #---
-        return ret_val
-    #---------------------
-
-    def each_line(self, txt, function_name):
-        """ for each line ret[x] = functionStr(inp[x]) """
-        ret_val = []
-        for i in range(0,len(txt)):
-            x = txt[i]
-            y = function_name(x)
-            ret_val.append(y)
-        #---
-        return ret_val
-    #--
-
-    def rstrip_all(self, txt):
-        """ for each y = rstrip(x) """
-        ret_val = []
-        for i in range(0,len(txt)):
-            ret_val.append(txt[i].rstrip())
-        #---
-        return ret_val
-    #---------------------
-
-    def remove_empty_lines(self, txt):
-        """ RemoveEmptyLines """
-        ret_val = []
-        for i in range(0,len(txt)):
-            if len(txt[i])>0:
-                ret_val.append(txt[i])
-            #---
-        #---
-        return ret_val
-    #---------------------
-
-    def remove_duplicates(self, txt):
-        output = []
-        for x in txt:
-            if x not in output:
-                output.append(x)
-            #--
-        #--
-        return output
-    #---------------------
-
-
     def dedent(self, txt, offset_pos=0):
+        """ Dedent text """
+        # todo: unittest
         output = []
         for x in txt:
             output.append(x[offset_pos:])
@@ -316,40 +469,12 @@ class ShellWrapper(object):
         return output
     #---------------------
 
-    def maxlen(self, txt):
-        maxLen = len(txt[0])
-        for x in txt:
-            if len(x)>maxLen:
-                maxLen = len(x)
-            #---
-        #---
-        return maxLen
-    #---------------------
-
-    def minlen(self, txt):
-        minLen = len(txt[0])
-        for x in txt:
-            if len(x)<minLen:
-                minLen = len(x)
-            #---
-        #---
-        return minLen
-    #---------------------
 
 
-    def to_string (self, txt, delimiter=' '):
-        retStr = ""
-        maxidx = len(txt)
-        for i in range(0,maxidx):
-            retStr += txt[i]
-            if i<(maxidx-1):
-                retStr += delimiter
-            #---
-        #---
-        return retStr
-    #---------------------
 
     def add_right_column(self, txt,trailer=' '):
+        # todo: docstring
+        # todo: unittest
         output = []
         for x in txt:
             output.append(x + trailer)
@@ -358,6 +483,8 @@ class ShellWrapper(object):
     #---------------------
 
     def vertical_cut(self, txt,left_col=0,right_col=-1):
+        # todo: docstring
+        # todo: unittest
         output = []
         for x in txt:
             if len(x)<left_col:
@@ -370,61 +497,12 @@ class ShellWrapper(object):
         return output
     #---------------------
 
-    def filter(self, txt, pattern):
-        filtered = []
-        for i in range(0,len(txt)):
-            x = re.findall(pattern, txt[i])
-            if len(x)>0:
-                filtered.append(txt[i])
-            #--
-        #--
-        return filtered
-    #---------------------
 
-    def filter_not(self, txt, pattern):
-        filtered = []
-        for i in range(0,len(txt)):
-            x = re.findall(pattern, txt[i])
-            if len(x)==0:
-                filtered.append(txt[i])
-            #--
-        #--
-        return filtered
-    #---------------------
-
-
-    def search_forward(self, txt, pattern, start=0):
-        for i in range(start,len(txt)):
-            x = re.findall(pattern, txt[i])
-            if len(x)>0:
-                return i
-        return -1
-    #---------------------
-
-    def search_backward(self, txt, pattern, start=-1):
-        if start<0:
-            start = len(txt)-1
-        for i in range(start,-1,-1):
-            x = re.findall(pattern, txt[i])
-            if len(x)>0:
-                return i
-        return -1
-    #---------------------
-
-
-    def count_matches(self, txt, pattern):
-        ret_val = 0
-        for i in range(0,len(txt)):
-            x = re.findall(pattern, txt[i])
-            if len(x)>0:
-                ret_val += 1    # if pattern found, count in
-            #--
-        #--
-        return ret_val
-    #---------------------
 
 
     def cut_fragment(self, txt, start, stop):
+        # todo: docstring
+        # todo: unittest
         filtered = []
         if start<0:
             start = 0
@@ -468,9 +546,9 @@ class ShellWrapper(object):
         if self.debug:
             print (offset + message)
         #---
-        self.logList.append(offset + message)
-        if len(self.LogFile)>0:
-            with open(self.LogFile, "a") as myLogFile:
+        self.log_list.append(offset + message)
+        if len(self.log_file)>0:
+            with open(self.log_file, "a") as myLogFile:
                 myLogFile.write("%s\n" % (offset + message))
             #---
         #---
@@ -558,7 +636,7 @@ class ShellWrapper(object):
 
         self.log('PID = %d' % pid)
 
-        if self.supressRunOutput or silent:
+        if self.supress_run_output or silent:
             (self.rawOutput, self.rawError) = self.process.communicate()
             self.cout = self.parse_shell_output(self.rawOutput)
             self.cerr = self.parse_shell_output(self.rawError)
@@ -585,7 +663,7 @@ class ShellWrapper(object):
         offset = ' '*4
 
         if self.cret!=0:
-            if len(self.cout)>0 and (self.supressRunOutput or silent):
+            if len(self.cout)>0 and (self.supress_run_output or silent):
                 self.prntxt(self.cout, ' '*4, '------- stdout output -------------')
             #---
             if len(self.cerr)>0:
@@ -712,12 +790,12 @@ class ShellWrapper(object):
         """ Write file """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         self.errcode = 0
-        self.lastWrittenFile = file_name
-        self.lastBackupFile = ''
+        self.last_written_file = file_name
+        self.last_backup_file = ''
         if os.path.isfile(file_name):
-            self.lastBackupFile = file_name + '.bak'
-            self.log('Saving backup %s' % self.lastBackupFile)
-            shutil.copy(file_name, self.lastBackupFile)
+            self.last_backup_file = file_name + '.bak'
+            self.log('Saving backup %s' % self.last_backup_file)
+            shutil.copy(file_name, self.last_backup_file)
         #-- end if
 
         try:
@@ -745,16 +823,16 @@ class ShellWrapper(object):
 
     def _diff_last_file_write (self):
         """ Diff last written file """
-        if os.path.isfile(self.lastWrittenFile) and os.path.isfile(self.lastBackupFile):
+        if os.path.isfile(self.last_written_file) and os.path.isfile(self.last_backup_file):
 
             with tempfile.NamedTemporaryFile(dir=tempfile._get_default_tempdir(), delete=False) as tmpfile:
                 diffName = tmpfile.name
 
-            self._run_silent('diff %s %s > %s' % (self.lastBackupFile,self.lastWrittenFile,diffName))
+            self._run_silent('diff %s %s > %s' % (self.last_backup_file,self.last_written_file,diffName))
             (res,diffBuffer) = self._read_new_buffer(diffName)
             if res:
                 offset = '    '
-                header = '====== DIFF in %s ======' % self.lastWrittenFile
+                header = '====== DIFF in %s ======' % self.last_written_file
                 footer = '='*len(header)
                 self.log_extend(self.fmttxt(diffBuffer, offset, header,footer))
             #---
@@ -935,7 +1013,7 @@ class ShellWrapper(object):
         """ exit script """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         if message!='':
-            self.logList.append(message)
+            self.log_list.append(message)
             print (message)
         #---
         self.log('Exit script with code %d' % ret_code)
@@ -946,7 +1024,7 @@ class ShellWrapper(object):
         """ Fatal Error: save log and terminate """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         retCode = -1
-        self.logList.append(message)
+        self.log_list.append(message)
         sys.stderr.write("%s\n" % message)
         self.log('Exit script with code %d' % retCode)
         exit(retCode)
