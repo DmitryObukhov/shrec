@@ -19,20 +19,11 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="batchprocessor.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="recipes.py">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="shellwrapper.py" />
     <Compile Include="shrec.py" />
-    <Compile Include="textprocessor.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="shrecunittest.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|PythonCore|3.6" />

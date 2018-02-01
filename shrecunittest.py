@@ -1,45 +1,27 @@
 #!/usr/bin/python
 """ SHell RECipes unit test module """
 from __future__ import print_function
-from textprocessor import TextProcessor
-from batchprocessor import BatchProcessor
+from shellwrapper import ShellWrapper
 
-__all__ = ['TextProcessorUnitTest','BatchProcessorUnitTest']
-
-
-def TextProcessorUnitTest():
+def main():
     errorCount = 0
+    shw = ShellWrapper(True, False, 'auto')
+    print_template = "%s, %d, %s"
 
-    actual_result = TextProcessor.quoted_string('abc')
-    if actual_result != '"abc"':
-        print ("FAIL -- QuotedString")
+    tested_function = 'quoted_string'
+    test_case = 1
+    expected_result = '"abc"'
+    actual_result = shw.quoted_string('abc')
+    if actual_result == expected_result:
+        print (print_template % (tested_function, test_case, 'PASS'))
+    else:
+        print (print_template % (tested_function, test_case, 'FAIL'))
         errorCount += 1
     #---
 
-    actual_result_1 = TextProcessor.time_stamp()
-    actual_result_2 = TextProcessor.time_stamp()
-    if actual_result_1 == actual_result_2:
-        print ("FAIL -- TimeStamp %s VS %s" % (actual_result_1,actual_result_2))
-        errorCount += 1
-    #---
-
-    actual_result = TextProcessor.random_string(3,'a')
-    if actual_result != 'aaa':
-        print ("FAIL -- random_string charset limitation")
-        errorCount += 1
-    #---
-
-    actual_result_1 = TextProcessor.random_string(16,'0123456789')
-    actual_result_2 = TextProcessor.random_string(16,'0123456789')
-    if actual_result_1 == actual_result_2:
-        print ("FAIL -- random_string, not really random")
-        errorCount += 1
-    #---
-
-
-    return errorCount
+    return -1 * errorCount
 #---
 
-def BatchProcessorUnitTest():
-    pass
+if __name__ == "__main__":
+    exit(main())
 #---
