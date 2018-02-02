@@ -129,7 +129,7 @@ def main():
         print("PASS: 001, read")
     #---
 
-    actual_text = shw.read(f_name,cleanUp=False)
+    actual_text = shw.read(f_name, clean=False)
     expected_text = ['1\n', '2\n', '3\n', '4\n', '\n', '5\n']
     discrepancies = set(actual_text) ^ set(expected_text)
     if (discrepancies != None) and (len(discrepancies)>0):
@@ -188,7 +188,28 @@ def main():
     err_count += TestCompareByPattern(shw,  'to_string',        1, 'a b c', shw.to_string(['a','b','c']))
     err_count += TestCompareByPattern(shw,  'to_string',        2, 'a#b#c', shw.to_string(['a','b','c'],'#'))
 
-    
+    err_count += CompareTextLists(shw, 'get_fragment', 1, ['bb','cc'],   shw.get_fragment(['aa','bb','cc','dd'],1,3))
+    err_count += CompareTextLists(shw, 'get_fragment', 2, ['cc','dd'],   shw.get_fragment(['aa','bb','cc','dd'],2,100))
+    err_count += CompareTextLists(shw, 'get_fragment', 3, ['aa','bb'],   shw.get_fragment(['aa','bb','cc','dd'],-2,2))
+
+    err_count += CompareTextLists(shw, 'cut_fragment', 1, ['aa','dd'],   shw.cut_fragment(['aa','bb','cc','dd'],1,3))
+    err_count += CompareTextLists(shw, 'cut_fragment', 2, ['aa','bb'],   shw.cut_fragment(['aa','bb','cc','dd'],2,100))
+    err_count += CompareTextLists(shw, 'cut_fragment', 3, ['cc','dd'],   shw.cut_fragment(['aa','bb','cc','dd'],-2,2))
+
+    err_count += CompareTextLists(shw, 'insert_fragment', 1, ['aa','bb','cc','dd'],   shw.insert_fragment(['aa','dd'],1,['bb','cc']))
+
+    err_count += CompareTextLists(shw, 'indent', 1, ['    aa','    bb'],   shw.indent(['aa','bb']))
+    err_count += CompareTextLists(shw, 'indent', 2, ['--aa','--bb'],   shw.indent(['aa','bb'],'--'))
+
+    err_count += CompareTextLists(shw, 'trail', 1, ['aa--','bb--'],   shw.trail(['aa','bb'],'--'))
+
+    err_count += CompareTextLists(shw, 'get_vertical', 1, ['ab','12'],   shw.get_vertical(['abcd','1234'],0,2))
+    err_count += CompareTextLists(shw, 'get_vertical', 2, ['bc','23'],   shw.get_vertical(['abcd','1234'],1,3))
+    err_count += CompareTextLists(shw, 'get_vertical', 3, ['','56'],   shw.get_vertical(['abcd','123456'],4,6))
+    err_count += CompareTextLists(shw, 'get_vertical', 4, ['abcd','123456'],   shw.get_vertical(['abcd','123456'],-1,6))
+
+    # todo: cut_vertical
+
 
 
     print("\nDetected %d errors\n\n"  % err_count)

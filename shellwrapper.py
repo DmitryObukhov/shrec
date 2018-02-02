@@ -37,10 +37,10 @@ class ShellWrapper(object):
         self.debug = debug      # enable debug features and save extended log
         self.quiet = quiet
         self.context = 5        # context size for diffs
-        self.system     = platform.system()
-        self.sysver     = platform.release()
-        self.platform   = sys.platform
-        self.dist       = platform.dist()
+        self.system = platform.system()
+        self.sysver = platform.release()
+        self.platform = sys.platform
+        self.dist = platform.dist()
         self.errcode = 0        # error code of the last command
         self.errmsg = ''        # diagnostic message
         self.log_list = []           # debug log
@@ -57,25 +57,30 @@ class ShellWrapper(object):
         self.starttime = None
         self.endtime = None
         self.elapsed = 0
-        self.process   = None
-        self.rawOutput = ''
-        self.rawError  = ''
+        self.process = None
+        self.raw_output = ''
+        self.raw_error = ''
 
 
 
-        self.log_file = log_file
-        if len(self.log_file)>0:
-            if self.log_file == "auto":
+        self.log_file_name = log_file
+        if self.log_file_name != '':
+            if self.log_file_name == "auto":
                 fn_split = self.split_file_name(caller_script)
-                self.log_file = os.path.normpath(tempfile.gettempdir() + '/' + fn_split['name'] + '__' + self.timestamp() + '.tmp')
+                self.log_file_name = os.path.normpath(tempfile.gettempdir() +
+                                                      '/' +
+                                                      fn_split['name'] +
+                                                      '__' +
+                                                      self.timestamp() +
+                                                      '.tmp')
             #--
         #---
         self.supress_run_output = False
         self.last_written_file = ''
         self.last_backup_file = ''
         self.caller = caller_script
-        self.logBaseline = 3
-        self.logOffsetStr = '    '
+        self.log_baseline = 3
+        self.log_offset_str = ' '*4
         self.log('caller=%s' % caller_script)
         self.log('self=%s' % __file__)
         if self.debug:
@@ -87,11 +92,11 @@ class ShellWrapper(object):
             self.log("platform.linkage=%s" % linkage)
             self.log("platform.python_version=%s" % platform.python_version())
             self.log("platform.system=%s" % platform.system())
-            if 'Linux' == self.system:
-                (distName,distVer,distID) = platform.linux_distribution()
-                self.log("Linux.Distro=%s" % distName)
-                self.log("Linux.Version=%s" % distVer)
-                self.log("Linux.DistID=%s" % distID)
+            if self.system == 'Linux':
+                (dist_name, dist_ver, dist_id) = platform.linux_distribution()
+                self.log("Linux.Distro=%s" % dist_name)
+                self.log("Linux.Version=%s" % dist_ver)
+                self.log("Linux.DistID=%s" % dist_id)
             #---
             self.log('===========================')
         #--
@@ -104,7 +109,7 @@ class ShellWrapper(object):
     #--- end of method
 
     @staticmethod
-    def timestamp(format_str = '%Y_%m_%d_%H%M%S%f'):
+    def timestamp(format_str='%Y_%m_%d_%H%M%S%f'):
         """  --> '2018_01_01_1234569999' """
         return datetime.now().strftime(format_str)
     #--- end of method
@@ -112,7 +117,7 @@ class ShellWrapper(object):
     @staticmethod
     def random_string(length, charset=''):
         """  --> 'lsdahfl897klj' """
-        if charset=='':
+        if charset == '':
             charset = string.ascii_uppercase + string.digits
         return ''.join(random.choice(charset) for _ in range(length))
     #--- end of method
@@ -121,8 +126,8 @@ class ShellWrapper(object):
     def rstrip_all(txt):
         """ for each y = rstrip(x) """
         ret_val = []
-        for i in range(0,len(txt)):
-            ret_val.append(txt[i].rstrip())
+        for idx in range(0, len(txt)):
+            ret_val.append(txt[idx].rstrip())
         #---
         return ret_val
     #---------------------
@@ -131,9 +136,9 @@ class ShellWrapper(object):
     def remove_empty_lines(txt):
         """ RemoveEmptyLines """
         ret_val = []
-        for i in range(0,len(txt)):
-            if len(txt[i])>0:
-                ret_val.append(txt[i])
+        for idx in range(0, len(txt)):
+            if txt[idx] != '':
+                ret_val.append(txt[idx])
             #---
         #---
         return ret_val
@@ -162,17 +167,17 @@ class ShellWrapper(object):
     #---
 
     @staticmethod
-    def read(file_name_str, cleanUp=True):
+    def read(file_name_str, clean=True):
         """  <FILE> --> [str,str,str] """
         ret_val = []
         try:
-            f = open(file_name_str)
+            input_file = open(file_name_str)
         except IOError:
             return None
         else:
-            ret_val = f.readlines()
-            f.close()
-            if cleanUp == True:
+            ret_val = input_file.readlines()
+            input_file.close()
+            if clean:
                 ret_val = ShellWrapper.rstrip_all(ret_val)
                 ret_val = ShellWrapper.remove_empty_lines(ret_val)
         return ret_val
@@ -183,9 +188,9 @@ class ShellWrapper(object):
         """  longStr --> [str1,str2,str3] """
         ret_val = []
         tmp = long_str
-        while len(tmp)>0:
+        while tmp != '':
             cur = ''
-            if len(tmp)>width:
+            if len(tmp) > width:
                 cur = tmp[0:width]
                 tmp = tmp[width:]
             else:
@@ -212,9 +217,9 @@ class ShellWrapper(object):
     def remove_duplicates(txt):
         """ Remove duplicated lines """
         output = []
-        for x in txt:
-            if x not in output:
-                output.append(x)
+        for cur_str in txt:
+            if cur_str not in output:
+                output.append(cur_str)
             #--
         #--
         return output
@@ -224,10 +229,10 @@ class ShellWrapper(object):
     def each_line(txt, function_name):
         """ for each line ret[x] = functionStr(inp[x]) """
         ret_val = []
-        for i in range(0,len(txt)):
-            x = txt[i]
-            y = function_name(x)
-            ret_val.append(y)
+        for idx in range(0, len(txt)):
+            cur_str = txt[idx]
+            new_str = function_name(cur_str)
+            ret_val.append(new_str)
         #---
         return ret_val
     #--
@@ -236,9 +241,9 @@ class ShellWrapper(object):
     def maxlen(txt):
         """ Max length of a line in text """
         max_len = len(txt[0])
-        for x in txt:
-            if len(x)>max_len:
-                max_len = len(x)
+        for cur_str in txt:
+            if len(cur_str) > max_len:
+                max_len = len(cur_str)
             #---
         #---
         return max_len
@@ -249,10 +254,10 @@ class ShellWrapper(object):
         """ Max length of a line in text """
         max_len = len(txt[0])
         longest = txt[0]
-        for x in txt:
-            if len(x)>max_len:
-                max_len = len(x)
-                longest = x
+        for cur_str in txt:
+            if len(cur_str) > max_len:
+                max_len = len(cur_str)
+                longest = cur_str
             #---
         #---
         return longest
@@ -264,9 +269,9 @@ class ShellWrapper(object):
     def minlen(txt):
         """ Min length of a line in text """
         min_len = len(txt[0])
-        for x in txt:
-            if len(x)<min_len:
-                min_len = len(x)
+        for cur_str in txt:
+            if len(cur_str) < min_len:
+                min_len = len(cur_str)
             #---
         #---
         return min_len
@@ -277,10 +282,10 @@ class ShellWrapper(object):
         """ Min length of a line in text """
         min_len = len(txt[0])
         shortest = txt[0]
-        for x in txt:
-            if len(x)<min_len:
-                min_len = len(x)
-                shortest = x
+        for cur_str in txt:
+            if len(cur_str) < min_len:
+                min_len = len(cur_str)
+                shortest = cur_str
             #---
         #---
         return shortest
@@ -290,10 +295,10 @@ class ShellWrapper(object):
     def filter(txt, pattern):
         """ returns matching lines as new list """
         filtered = []
-        for i in range(0,len(txt)):
-            x = re.findall(pattern, txt[i])
-            if len(x)>0:
-                filtered.append(txt[i])
+        for idx in range(0, len(txt)):
+            matches = re.findall(pattern, txt[idx])
+            if matches:
+                filtered.append(txt[idx])
             #--
         #--
         return filtered
@@ -303,10 +308,10 @@ class ShellWrapper(object):
     def filter_not(txt, pattern):
         """ returns not matching lines as new list """
         filtered = []
-        for i in range(0,len(txt)):
-            x = re.findall(pattern, txt[i])
-            if len(x)==0:
-                filtered.append(txt[i])
+        for idx in range(0, len(txt)):
+            matches = re.findall(pattern, txt[idx])
+            if matches:
+                filtered.append(txt[idx])
             #--
         #--
         return filtered
@@ -314,23 +319,32 @@ class ShellWrapper(object):
 
     @staticmethod
     def search_forward(txt, pattern, start=0):
-        """ starting from start_idx searching forward for pattern. Returns index or -1 if not found """
-        for i in range(start,len(txt)):
-            x = re.findall(pattern, txt[i])
-            if len(x)>0:
-                return i
+        """ starting from start_idx searching forward for pattern.
+            Returns index or -1 if not found
+        """
+        for idx in range(start, len(txt)):
+            matches = re.findall(pattern, txt[idx])
+            if matches:
+                return idx
+            #---
+        #---
         return -1
     #---------------------
 
     @staticmethod
     def search_backward(txt, pattern, start=-1):
-        """ starting from start_idx searching backward for pattern. Returns index or -1 if not found """
-        if start<0:
+        """ starting from start_idx searching backward for pattern.
+            Returns index or -1 if not found
+        """
+        if start < 0:
             start = len(txt)-1
-        for i in range(start,-1,-1):
-            x = re.findall(pattern, txt[i])
-            if len(x)>0:
-                return i
+        #---
+        for idx in range(start, -1, -1):
+            matches = re.findall(pattern, txt[idx])
+            if matches:
+                return idx
+            #---
+        #---
         return -1
     #---------------------
 
@@ -338,9 +352,9 @@ class ShellWrapper(object):
     def count_matches(txt, pattern):
         """ Returns number of lines matching the pattern """
         ret_val = 0
-        for i in range(0,len(txt)):
-            x = re.findall(pattern, txt[i])
-            if len(x)>0:
+        for i in range(0, len(txt)):
+            matches = re.findall(pattern, txt[i])
+            if matches:
                 ret_val += 1    # if pattern found, count in
             #--
         #--
@@ -350,182 +364,61 @@ class ShellWrapper(object):
     @staticmethod
     def to_string(txt, delimiter=' '):
         """ text to string """
-        retStr = ""
+        ret_val = ""
         maxidx = len(txt)
-        for i in range(0,maxidx):
-            retStr += txt[i]
-            if i<(maxidx-1):
-                retStr += delimiter
+        for i in range(0, maxidx):
+            ret_val += txt[i]
+            if i < (maxidx-1):
+                ret_val += delimiter
             #---
-        #---
-        return retStr
-    #---------------------
-
-    #######################################################################################################
-    #     ____  ____    _   _ _   _ ___ _____ _____ _____ ____ _____ _____ ____
-    #    |___ \| __ )  | | | | \ | |_ _|_   _|_   _| ____/ ___|_   _| ____|  _ \
-    #      __) |  _ \  | | | |  \| || |  | |   | | |  _| \___ \ | | |  _| | | | |
-    #     / __/| |_) | | |_| | |\  || |  | |   | | | |___ ___) || | | |___| |_| |
-    #    |_____|____/   \___/|_| \_|___| |_|   |_| |_____|____/ |_| |_____|____/
-    #
-    #######################################################################################################
-
-
-
-    def parse_shell_output(self, shell_output_str):
-        """  --> 'lsdahfl897klj' """
-        # todo: unittest
-        ret_val = []
-        ret_val = re.split('[\r\n]+', shell_output_str)
-        for idx in range(0,len(ret_val)):
-            ret_val[idx] = ret_val[idx].rstrip()
         #---
         return ret_val
-    #--- end of method
-
-
-    def debug_info(self, message_str):
-        """  --> Debug info """
-        # todo: unittest
-        frame = sys._getframe(1)
-        funName = frame.f_code.co_name
-        line_number = frame.f_lineno
-        filename = frame.f_code.co_filename
-        return ( "%s : %s (%s:%04d) : %s" % (self.timestamp('%H.%M.%S.%f'), funName, filename, line_number, message_str))
-    #--- end of method
-
-
-    def unify_length(self, s, maxlen=-1, minlen=-1, spacer=' '):
-        """  Cut string or add spacers to keep length for all lines """
-        # todo: unittest
-        retStr = s
-        curLen = len(retStr)
-        # if maxLen defined, keep the left portion
-        if maxlen>0 and (curLen > maxlen):
-            retStr = retStr[:maxlen]
-
-        # if min len is defined, space trail string
-        curLen = len(retStr)
-        if minlen>0 and (curLen < minlen):
-            retStr = retStr + spacer*(minlen-curLen)
-
-        return retStr
-    #--
-
-
-    def fmttxt(self, t, indent="", header="", footer="", maxlen=-1, minlen=-1, line_numbering_start=-1):
-        """  [str1,str2] --> [header, offset + str1, offset + str2, footer]"""
-        # todo: unittest
-        retTxt = []
-        line_number_str = ""
-        line_number_placeholder = ''
-        if line_numbering_start>-1:
-            line_number = line_numbering_start
-            line_number_width = len("%d" % len(t))
-            line_number_template = "%%%dd: " % line_number_width
-            line_number_placeholder = ' '*(line_number_width+2)
-
-        # if the header is defined, add header after indent
-        if (len(header))>0:
-            retTxt.append("%s%s%s" % (indent, line_number_placeholder, header))
-
-        for i in range(0,len(t)):
-            # prepare line numbering
-            if line_numbering_start>-1:
-                line_number_str = line_number_template % line_number
-                line_number += 1
-            # prepare line in format [indent][lineNumber][actualString]
-            cur_line = "%s%s%s" % (indent,line_number_str,t[i])
-            cur_line = self.unify_length(cur_line,maxlen,minlen)
-            # add to the output
-            retTxt.append(cur_line)
-        #----------------------------- end for
-
-        if (len(footer))>0:
-            retTxt.append("%s%s%s" % (indent, line_number_placeholder, footer))
-
-        return retTxt
     #---------------------
 
-    def prntxt(self, t, indent="", header="", footer="", maxlen=-1, minlen=-1, line_numbering_start=-1):
-        """  print the list of strings """
-        # todo: unittest
-        if len(t)>0:
-            tmp = self.fmttxt(t, indent, header, footer, maxlen, minlen, line_numbering_start)
-            for i in range(0,len(tmp)):
-                print (tmp[i])
-            #---
-        #---
-    #---
-
-
-    def dedent(self, txt, offset_pos=0):
-        """ Dedent text """
-        # todo: unittest
-        output = []
-        for x in txt:
-            output.append(x[offset_pos:])
-        #--
-        return output
-    #---------------------
-
-
-
-
-    def add_right_column(self, txt,trailer=' '):
-        # todo: docstring
-        # todo: unittest
-        output = []
-        for x in txt:
-            output.append(x + trailer)
-        #--
-        return output
-    #---------------------
-
-    def vertical_cut(self, txt,left_col=0,right_col=-1):
-        # todo: docstring
-        # todo: unittest
-        output = []
-        for x in txt:
-            if len(x)<left_col:
-                output.append('')
-            elif len(x)<right_col:
-                output.append(x[left_col:])
-            else:
-                output.append(x[left_col:right_col])
-        #--
-        return output
-    #---------------------
-
-
-
-
-    def cut_fragment(self, txt, start, stop):
-        # todo: docstring
-        # todo: unittest
+    @staticmethod
+    def get_fragment(txt, start, stop):
+        """ cut fragment of text and return it as new text """
         filtered = []
-        if start<0:
+        if start < 0:
             start = 0
-        if stop>len(txt):
+        if stop > len(txt):
             stop = len(txt)
-
-        for i in range(start,stop):
+        for i in range(start, stop):
             filtered.append(txt[i])
-
+        #---
         return filtered
     #---------------------
 
+    @staticmethod
+    def cut_fragment(txt, start, stop):
+        """ cut fragment of text and return it as new text """
+        filtered = []
+        if start < 0:
+            start = 0
+        if stop > len(txt):
+            stop = len(txt)
+        for i in range(0, start):
+            filtered.append(txt[i])
+        #---
+        for i in range(stop, len(txt)):
+            filtered.append(txt[i])
+        #---
+        return filtered
+    #---------------------
 
-    def insert_fragment(self, txt, position, fragment):
+    @staticmethod
+    def insert_fragment(txt, position, fragment):
         """ insert fragment at given position """
         output = []
-        if position<len(txt):
+        if position < len(txt):
             # before
-            for i in range(0,position):
+            for i in range(0, position):
                 output.append(txt[i])
+            #---
             output.extend(fragment)
-            for i in range(position,len(txt)):
+            for i in range(position, len(txt)):
                 output.append(txt[i])
+            #---
             # after
         else:
             output.extend(fragment)
@@ -533,23 +426,256 @@ class ShellWrapper(object):
         return output
     #---------------------
 
-    def _call_stack_depth (self):
+
+    @staticmethod
+    def indent(txt, lead=' '*4):
+        """ Indent text """
+        output = []
+        for cur_str in txt:
+            output.append(lead + cur_str)
+        #--
+        return output
+    #---------------------
+
+    @staticmethod
+    def trail(txt, trailer):
+        """ Add trailers """
+        output = []
+        for cur_str in txt:
+            output.append(cur_str + trailer)
+        #--
+        return output
+    #---------------------
+
+    @staticmethod
+    def dedent(txt, offset_pos=0):
+        """ Dedent text """
+        output = []
+        for cur_str in txt:
+            output.append(cur_str[offset_pos:])
+        #--
+        return output
+    #---------------------
+
+    @staticmethod
+    def cut_vertical(txt, left_col=0, right_col=-1):
+        """ Cut vertical block from the text and return text """
+        output = []
+        # todo: implementation
+        for cur_str in txt:
+            if len(cur_str) < left_col:
+                output.append('')
+            elif len(cur_str) < right_col:
+                output.append(cur_str[left_col:])
+            else:
+                output.append(cur_str[left_col:right_col])
+        #--
+        return output
+    #---------------------
+
+    @staticmethod
+    def get_vertical(txt, left_col=0, right_col=-1):
+        """ Cut vertical block from the text and return the block """
+        output = []
+        if left_col < 0:
+            left_col = 0
+        #---
+        for cur_str in txt:
+            if len(cur_str) < left_col:
+                output.append('')
+            elif len(cur_str) < right_col:
+                output.append(cur_str[left_col:])
+            else:
+                output.append(cur_str[left_col:right_col])
+        #--
+        return output
+    #---------------------
+
+    ###############################################################################################
+    #     ____  ____    _   _ _   _ ___ _____ _____ _____ ____ _____ _____ ____
+    #    |___ \| __ )  | | | | \ | |_ _|_   _|_   _| ____/ ___|_   _| ____|  _ \
+    #      __) |  _ \  | | | |  \| || |  | |   | | |  _| \___ \ | | |  _| | | | |
+    #     / __/| |_) | | |_| | |\  || |  | |   | | | |___ ___) || | | |___| |_| |
+    #    |_____|____/   \___/|_| \_|___| |_|   |_| |_____|____/ |_| |_____|____/
+    #
+    ###############################################################################################
+
+    @staticmethod
+    def one_dir_up(dir_name):
+        """ One directory up tree """
+        one_dir_up = re.sub('/[^/]+$', '', dir_name)
+        return one_dir_up
+    #---
+
+
+    @staticmethod
+    def split_file_name(file_name):
+        """ Split file name into path, name, and extension """
+        r_path = os.path.dirname(file_name)
+        (r_name, r_ext) = os.path.splitext(os.path.basename(file_name))
+        ret_val = {}
+        ret_val['path'] = r_path
+        ret_val['name'] = r_name
+        ret_val['ext'] = r_ext
+        return ret_val
+    #---
+
+
+    @staticmethod
+    def parse_shell_output(shell_output_str):
+        """  --> 'lsdahfl897klj' """
+        # todo: unittest
+        ret_val = []
+        ret_val = re.split('[\r\n]+', shell_output_str)
+        for idx in range(0, len(ret_val)):
+            ret_val[idx] = ret_val[idx].rstrip()
+        #---
+        return ret_val
+    #--- end of method
+
+
+    @staticmethod
+    def debug_info(message_str):
+        """  --> Debug info """
+        # todo: unittest
+        frame = sys._getframe(1)
+        fun_name = frame.f_code.co_name
+        line_number = frame.f_lineno
+        file_name = frame.f_code.co_filename
+
+        ret_str = "%s : %s (%s:%04d) : %s" % (
+            ShellWrapper.timestamp('%H.%M.%S.%f'),
+            fun_name,
+            file_name,
+            line_number,
+            message_str)
+
+        return ret_str
+    #--- end of method
+
+
+    @staticmethod
+    def unify_length(input_str, maxlen=-1, minlen=-1, spacer=' '):
+        """  Cut string or add spacers to keep length for all lines """
+        # todo: unittest
+        ret_str = input_str
+        cur_len = len(ret_str)
+        # if maxLen defined, keep the left portion
+        if (maxlen > 0) and (cur_len > maxlen):
+            ret_str = ret_str[:maxlen]
+        #---
+
+        # if min len is defined, space trail string
+        cur_len = len(ret_str)
+        if (minlen > 0) and (cur_len < minlen):
+            ret_str = ret_str + spacer*(minlen-cur_len)
+        #---
+
+        return ret_str
+    #--
+
+
+    @staticmethod
+    def fmttxt(txt,
+               indent="",
+               header="",
+               footer="",
+               maxlen=-1,
+               minlen=-1,
+               line_numbering_start=-1):
+        """  [str1,str2] --> [header, offset + str1, offset + str2, footer]"""
+        # todo: unittest
+        ret_val = []
+        line_number_str = ""
+        line_number_placeholder = ''
+        if line_numbering_start > -1:
+            line_number = line_numbering_start
+            line_number_width = len("%d" % len(txt))
+            line_number_template = "%%%dd: " % line_number_width
+            line_number_placeholder = ' '*(line_number_width+2)
+        #---
+
+        # if the header is defined, add header after indent
+        if header != '':
+            ret_val.append("%s%s%s" % (indent, line_number_placeholder, header))
+        #---
+
+        for line_idx in range(0, len(txt)):
+            # prepare line numbering
+            if line_numbering_start > -1:
+                line_number_str = line_number_template % line_number
+                line_number += 1
+            # prepare line in format [indent][lineNumber][actualString]
+            cur_line = "%s%s%s" % (indent, line_number_str, txt[line_idx])
+            cur_line = ShellWrapper.unify_length(cur_line, maxlen, minlen)
+            # add to the output
+            ret_val.append(cur_line)
+        #----------------------------- end for
+
+        if footer != '':
+            ret_val.append("%s%s%s" % (indent, line_number_placeholder, footer))
+        #---
+
+        return ret_val
+    #---------------------
+
+    @staticmethod
+    def prntxt(txt,
+               indent="",
+               header="",
+               footer="",
+               maxlen=-1,
+               minlen=-1,
+               line_numbering_start=-1):
+        """  print the list of strings """
+        # todo: unittest
+        if txt != '':
+            tmp = ShellWrapper.fmttxt(txt,
+                                      indent,
+                                      header,
+                                      footer,
+                                      maxlen,
+                                      minlen,
+                                      line_numbering_start)
+            #---------------------------------------------
+            for i in range(0, len(tmp)):
+                print (tmp[i])
+            #---
+        #---
+    #---
+
+
+
+
+
+
+
+
+
+
+
+
+
+    @staticmethod
+    def _call_stack_depth():
         """ Hidden Method for stack depth """
         stack = inspect.stack()
         return len(stack)
     #---
 
+
+
     def log(self, message):
         """ Save message in execution history """
         stack = inspect.stack()
-        offset = self.logOffsetStr * (len(stack) - self.logBaseline)
+        offset = self.log_offset_str * (len(stack) - self.log_baseline)
         if self.debug:
             print (offset + message)
         #---
         self.log_list.append(offset + message)
-        if len(self.log_file)>0:
-            with open(self.log_file, "a") as myLogFile:
-                myLogFile.write("%s\n" % (offset + message))
+        if self.log_file_name != '':
+            with open(self.log_file_name, "a") as logfile:
+                logfile.write("%s\n" % (offset + message))
             #---
         #---
         return True
@@ -558,7 +684,7 @@ class ShellWrapper(object):
     def ask_to_continue(self, message=''):
         """ Ask for user input to continue or stop """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        if len(message)>0:
+        if message != '':
             self.prn(message)
         else:
             self.prn("Continue execution?")
@@ -583,36 +709,40 @@ class ShellWrapper(object):
     def log_extend(self, array_of_strings):
         """ Log a list of strings """
         stack = inspect.stack()
-        offset = self.logOffsetStr * (len(stack) - self.logBaseline)
-        for eachStr in array_of_strings:
-            self.log(offset + eachStr)
+        offset = self.log_offset_str * (len(stack) - self.log_baseline)
+        for cur_str in array_of_strings:
+            self.log(offset + cur_str)
         #---
         return True
     #---
 
 
 
-    def _run_silent (self, command_str, working_directory=''):
+    def _run_silent(self, command_str, working_directory=''):
         """ Run shall command without log messages """
-        actualDirectory = os.getcwd()
-        if (len(working_directory)>0):
+        actual_directory = os.getcwd()
+        if working_directory:
             os.chdir(working_directory)
         #--
-        process = subprocess.Popen(command_str, shell=True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-        self.rawOutput, self.rawError = process.communicate()
-        if (len(working_directory)>0):
-            os.chdir(actualDirectory)
+        process = subprocess.Popen(command_str,
+                                   shell=True,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+
+        self.raw_output, self.raw_error = process.communicate()
+        if working_directory:
+            os.chdir(actual_directory)
         #--
         return process.returncode
     #---
 
 
-    def run (self, command_str, working_directory='', silent=False):
+    def run(self, command_str, working_directory='', silent=False):
         """ Run shall command """
-        if len(command_str)==0:
+        if command_str == '':
             return True
         #---
-        self.log('--> %s     %s' % ((sys._getframe(0)).f_code.co_name,command_str))
+        self.log('--> %s     %s' % ((sys._getframe(0)).f_code.co_name, command_str))
         self.cout = []
         self.parsed = []
         self.cerr = []
@@ -623,67 +753,73 @@ class ShellWrapper(object):
         self.log("Executing %s at %s" % (self.command, os.getcwd()))
         self.log("Started %s" % ctime(self.starttime))
 
-        actualDirectory = os.getcwd()
-        if (len(working_directory)>0):
-            self.log("Changing directory %s --> %s" % (actualDirectory,working_directory))
+        actual_directory = os.getcwd()
+        if working_directory:
+            self.log("Changing directory %s --> %s" % (actual_directory, working_directory))
             os.chdir(working_directory)
         #--
 
         self.log("Continue in %s" % (os.getcwd()))
 
-        self.process = subprocess.Popen(self.command, shell=True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+        self.process = subprocess.Popen(self.command,
+                                        shell=True,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+
         pid = self.process.pid
 
         self.log('PID = %d' % pid)
 
         if self.supress_run_output or silent:
-            (self.rawOutput, self.rawError) = self.process.communicate()
-            self.cout = self.parse_shell_output(self.rawOutput)
-            self.cerr = self.parse_shell_output(self.rawError)
+            (self.raw_output, self.raw_error) = self.process.communicate()
+            self.cout = self.parse_shell_output(self.raw_output)
+            self.cerr = self.parse_shell_output(self.raw_error)
             self.cret = self.process.returncode
         else:
             self.cout = []
-            self.rawOutput = ""
+            self.raw_output = ""
 
             for line in iter(self.process.stdout.readline, ''):
                 line = line.rstrip()
-                self.prn ("%s" % line)
+                self.prn("%s" % line)
                 self.cout.append(line)
             #---
-            self.rawError = self.process.stderr.readlines()
+            self.raw_error = self.process.stderr.readlines()
             self.process.stdout.close()
             self.process.stderr.close()
             self.cret = self.process.wait()
 
-            self.rawOutput = "\n".join(self.cout)
+            self.raw_output = "\n".join(self.cout)
         #---
 
         self.log('Thread finished with return code %d' % self.cret)
 
         offset = ' '*4
 
-        if self.cret!=0:
-            if len(self.cout)>0 and (self.supress_run_output or silent):
+        if self.cret != 0:
+            if (self.cout) and (self.supress_run_output or silent):
                 self.prntxt(self.cout, ' '*4, '------- stdout output -------------')
             #---
-            if len(self.cerr)>0:
+            if self.cerr:
                 self.prntxt(self.cerr, ' '*4, '------- stderr output -------------')
             #---
+        #---
 
-        if len(self.cout)>0:
+        if self.cout:
             header = '--- stdout of %s ---' % self.command
             footer = '-'*len(header)
             self.log_extend(self.fmttxt(self.cout, offset, header, footer))
         #--
-        if len(self.cerr)>0:
+
+        if self.cerr:
             header = '--- stderr of %s ---' % self.command
             footer = '-'*len(header)
             self.log_extend(self.fmttxt(self.cerr, offset, header, footer))
         #--
 
-        if (len(working_directory)>0):
-            self.log("Changing directory %s --> %s" % (working_directory,actualDirectory))
-            os.chdir(actualDirectory)
+        if working_directory:
+            self.log("Changing directory %s --> %s" % (working_directory, actual_directory))
+            os.chdir(actual_directory)
             self.log("Continue in %s" % (os.getcwd()))
         #--
 
@@ -697,7 +833,7 @@ class ShellWrapper(object):
             self.error_count += 1
         #---
 
-        return (self.cret == 0)
+        return self.cret == 0
 
 
 
@@ -705,21 +841,21 @@ class ShellWrapper(object):
         """ Run shall command and parse output """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         self.token = []
-        self.run(command,work_dir)
+        self.run(command, work_dir)
         if self.cret != 0:
             self.error_count += 1
         #---
-        pos = self.search_forward(self.cout,pattern)
-        if pos>=0:
-            self.log('Pattern %s found at position %d of stdout' % (pattern,pos))
-            self.token = re.split(delimiter,self.cout[pos])
+        pos = self.search_forward(self.cout, pattern)
+        if pos >= 0:
+            self.log('Pattern %s found at position %d of stdout' % (pattern, pos))
+            self.token = re.split(delimiter, self.cout[pos])
             self.log('Extracted %d tokens' % (len(self.token)))
         else:
             self.log('Pattern %s is not found in stdout capture' % (pattern))
-            pos = self.search_forward(self.cerr,pattern)
-            if pos>=0:
-                self.log('Pattern %s found at position %d in stderr' % (pattern,pos))
-                self.token = re.split(delimiter,self.cerr[pos])
+            pos = self.search_forward(self.cerr, pattern)
+            if pos >= 0:
+                self.log('Pattern %s found at position %d in stderr' % (pattern, pos))
+                self.token = re.split(delimiter, self.cerr[pos])
                 self.log('Extracted %d tokens' % (len(self.token)))
             else:
                 self.log('Pattern %s is not found in stderr capture' % (pattern))
@@ -731,62 +867,70 @@ class ShellWrapper(object):
     def run_as_user(self, command, work_dir, user=''):
         """ Run shall command as specific user """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name + " user=%s" % user)
-        if len(user)>0:
+        if user:
             # Run it as different user
-            command = ("sudo -H -u %s bash -c " % user) + "'" + command + "'"
+            sudo_cmd = "sudo -H -u %s bash -c " % user
+            cd_cmd = ''
+            if work_dir:
+                cd_cmd = 'cd %s; ' % work_dir
+            #---
+            command = sudo_cmd + "'" + cd_cmd + command + "'"
         #---
         return self.run(command)
     #---
 
-    def _read_new_buffer (self, file_name):
+    def _read_new_buffer(self, file_name):
         """ Read file """
-        retBuf = []
+        ret_buf = []
         self.errcode = 0
         if not os.path.isfile(file_name):
             self.errcode = -1
             self.errmsg = "ERROR (%d): Cannot find file %s" % (self.errcode, file_name)
             self.log(self.errmsg)
-            return (False,[])
+            return (False, [])
         #-- end if
 
         try:
-            f = open(file_name)
+            input_file = open(file_name)
         except IOError:
             self.errcode = -2
             self.errmsg = "ERROR (%d): Cannot open %s" % (self.errcode, file_name)
             self.log(self.errmsg)
-            return (False,[])
+            return (False, [])
         #---
+
+
 
         try:
-            retBuf = f.readlines()
-        except:
+            ret_buf = input_file.readlines()
+        except IOError:
             self.errcode = -3
-            self.errmsg = "ERROR (%d): Cannot read from %s" % (self.errcode, file_name)
+            self.errmsg = "Error (%d): Cannot read from %s" % (self.errcode, file_name)
             self.log(self.errmsg)
-            return (False,[])
+            return (False, [])
+        else:
+            input_file.close()
         #---
 
-        f.close()
 
-        retBuf = self.rstrip_all(retBuf)
+        ret_buf = self.rstrip_all(ret_buf)
         #retBuf = self.RemoveEmptyLines(retBuf)
 
-        if len(retBuf)<1:
+        if len(ret_buf) < 1:
             self.log("Warning: empty file %s" % (file_name))
         #-- end if
 
-        return (True,retBuf)
+        return (True, ret_buf)
     #---
 
-    def read_file (self, file_name):
+    def read_file(self, file_name):
         """ Read file """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        (res,self.text) = self._read_new_buffer(file_name)
+        (res, self.text) = self._read_new_buffer(file_name)
         return res
     #---
 
-    def write_file (self, file_name, str_array=None):
+    def write_file(self, file_name, str_array=None):
         """ Write file """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         self.errcode = 0
@@ -799,21 +943,21 @@ class ShellWrapper(object):
         #-- end if
 
         try:
-            fileToSave = open(file_name, 'w')
-            bufferToSave = []
-            if str_array == None:
-                bufferToSave = self.text
+            file_to_save = open(file_name, 'w')
+            buffer_to_save = []
+            if str_array is None:
+                buffer_to_save = self.text
             else:
-                bufferToSave = str_array
+                buffer_to_save = str_array
 
-            for item in bufferToSave:
-                fileToSave.write("%s\n" % item)
+            for item in buffer_to_save:
+                file_to_save.write("%s\n" % item)
             #--
-            fileToSave.flush()
-            fileToSave.close()
-            self.log("Saved %d lines to %s" % (len(bufferToSave),file_name))
+            file_to_save.flush()
+            file_to_save.close()
+            self.log("Saved %d lines to %s" % (len(buffer_to_save), file_name))
             return True
-        except:
+        except IOError:
             self.errcode = -2
             self.errmsg = "ERROR (%d): Cannot write to %s" % (self.errcode, file_name)
             self.log(self.errmsg)
@@ -821,24 +965,28 @@ class ShellWrapper(object):
         return False
     #---
 
-    def _diff_last_file_write (self):
+    def _diff_last_file_write(self):
         """ Diff last written file """
         if os.path.isfile(self.last_written_file) and os.path.isfile(self.last_backup_file):
+            dir_name = tempfile._get_default_tempdir()
+            with tempfile.NamedTemporaryFile(dir_name, delete=False) as tmpfile:
+                diff_name = tmpfile.name
+            #---
 
-            with tempfile.NamedTemporaryFile(dir=tempfile._get_default_tempdir(), delete=False) as tmpfile:
-                diffName = tmpfile.name
+            self._run_silent('diff %s %s > %s' % (self.last_backup_file,
+                                                  self.last_written_file,
+                                                  diff_name))
 
-            self._run_silent('diff %s %s > %s' % (self.last_backup_file,self.last_written_file,diffName))
-            (res,diffBuffer) = self._read_new_buffer(diffName)
+            (res, diff_buffer) = self._read_new_buffer(diff_name)
             if res:
                 offset = '    '
                 header = '====== DIFF in %s ======' % self.last_written_file
                 footer = '='*len(header)
-                self.log_extend(self.fmttxt(diffBuffer, offset, header,footer))
+                self.log_extend(self.fmttxt(diff_buffer, offset, header, footer))
             #---
             try:
-                os.remove(diffName)
-            except:
+                os.remove(diff_name)
+            except OSError:
                 self.log("Warning: Cannot delete temp file in Diff function")
             #---
         #-- end if
@@ -851,19 +999,21 @@ class ShellWrapper(object):
         if not self.read_file(file_name):
             return False
 
-        tempName = self.random_string(8) + '.tmp'
+        temp_name = self.random_string(8) + '.tmp'
         if self.debug:
-            shutil.copyfile(file_name,tempName)
+            shutil.copyfile(file_name, temp_name)
 
         self.text.extend(lines)
         if self.debug:
-            self.log("Added %d lines to %s" % (len(lines),file_name))
+            self.log("Added %d lines to %s" % (len(lines), file_name))
 
         if not self.write_file(file_name):
             return False
+        #---
 
         if self.debug:
             self._diff_last_file_write()
+        #---
 
         return True
     #---------------------
@@ -873,24 +1023,29 @@ class ShellWrapper(object):
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         if not self.read_file(file_name):
             return False
+        #---
 
-        pos = self.search_forward(self.text,pattern)             # Find the configuration line
-        if (pos<0):                                                     # if line not found
+        pos = self.search_forward(self.text, pattern)             # Find the configuration line
+        if pos < 0:                                                     # if line not found
             self.errcode = -3
-            self.errmsg = "WARNING (%d): Cannot find %s in %s" % (self.errcode,pattern, file_name)
+            self.errmsg = "WARNING (%d): Cannot find %s in %s" % (self.errcode, pattern, file_name)
             self.log(self.errmsg)
             return False
+        #---
 
         if use_regex:
-            self.text[pos] = re.sub(self.text[pos],pattern,replacement)
+            self.text[pos] = re.sub(self.text[pos], pattern, replacement)
         else:
             self.text[pos] = replacement
+        #---
 
         if not self.write_file(file_name):
             return False
+        #---
 
         if self.debug:
             self._diff_last_file_write()
+        #---
 
         return True
     #---------------------
@@ -899,14 +1054,14 @@ class ShellWrapper(object):
     def insert_fragment_at_pos(self, file_name, pos, fragment):
         """ open file, insert fragment at position, save """
         ret_val = False
-        myName = (sys._getframe(0)).f_code.co_name
-        self.log('--> %s' % myName)
+        name_of_function = (sys._getframe(0)).f_code.co_name
+        self.log('--> %s' % name_of_function)
 
         while True: # Single exit point function
             if not self.read_file(file_name):
                 break
             #---
-            self.text = self.insert_fragment(self.text,pos,fragment)
+            self.text = self.insert_fragment(self.text, pos, fragment)
 
             if not self.write_file(file_name):
                 break
@@ -920,7 +1075,7 @@ class ShellWrapper(object):
             break # Single exit point function must break at the end
         #---
 
-        self.log('<-- %s' % myName)
+        self.log('<-- %s' % name_of_function)
         return ret_val
     #---------------------
 
@@ -930,47 +1085,56 @@ class ShellWrapper(object):
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         if not self.read_file(file_name):
             return False
-
-        pos = self.search_forward(self.text,pattern)
-        if pos>0:
+        #---
+        pos = self.search_forward(self.text, pattern)
+        if pos > 0:
             return self.insert_fragment_at_pos(file_name, pos+1, fragment)
-
+        #---
         return False
     #---------------------
 
 
-    def delete_fragment_between_markers(self, file_name, start_pattern, end_pattern, inclusive=False):
+    def delete_fragment_between_markers(self,
+                                        file_name,
+                                        start_pattern,
+                                        end_pattern,
+                                        inclusive=False):
         """ open file, delete fragment between markers, save """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         if not self.read_file(file_name):
             return False
 
-        posStart = self.search_forward(self.text,start_pattern)
-        if posStart<0:
+        pos_start = self.search_forward(self.text, start_pattern)
+        if pos_start < 0:
             self.log("Cannot find start pattern %s" % start_pattern)
             return False
+        #---
 
-        self.log("Found start pattern %s at %d" % (start_pattern,posStart))
+        self.log("Found start pattern %s at %d" % (start_pattern, pos_start))
         # start search from the position of start pattern
-        posEnd = self.search_forward(self.text,end_pattern,posStart)
-        if posEnd<0:
+        pos_end = self.search_forward(self.text, end_pattern, pos_start)
+        if pos_end < 0:
             self.log("Cannot find end pattern %s" % end_pattern)
             return False
+        #---
 
-        newText = []
-        startOffset = 1
-        endOffset = 0
+        new_text = []
+        start_offset = 1
+        end_offset = 0
         if inclusive:
-            startOffset = 0
-            endOffset = 1
+            start_offset = 0
+            end_offset = 1
+        #---
 
-        for idx in range(0, posStart+startOffset):
-            newText.append(self.text[idx])
+        for idx in range(0, pos_start+start_offset):
+            new_text.append(self.text[idx])
+        #---
 
-        for idx in range(posEnd-endOffset, len(self.text)):
-            newText.append(self.text[idx])
+        for idx in range(pos_end-end_offset, len(self.text)):
+            new_text.append(self.text[idx])
+        #---
 
-        self.text = newText
+        self.text = new_text
 
         if not self.write_file(file_name):
             return False
@@ -988,7 +1152,7 @@ class ShellWrapper(object):
         if not self.read_file(file_name):
             return False
 
-        self.text = self.filter_not(self.text,pattern)
+        self.text = self.filter_not(self.text, pattern)
 
         if not self.write_file(file_name):
             return False
@@ -1004,7 +1168,7 @@ class ShellWrapper(object):
         """ print message and save log """
         self.log(str_message)
         if not self.quiet:
-            print (str_message)
+            print(str_message)
         return True
     #--
 
@@ -1012,9 +1176,9 @@ class ShellWrapper(object):
     def exit(self, ret_code=0, message=''):
         """ exit script """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        if message!='':
+        if message != '':
             self.log_list.append(message)
-            print (message)
+            print(message)
         #---
         self.log('Exit script with code %d' % ret_code)
         exit(ret_code)
@@ -1023,11 +1187,11 @@ class ShellWrapper(object):
     def fatal_error(self, message):
         """ Fatal Error: save log and terminate """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        retCode = -1
+        ret_code = -1
         self.log_list.append(message)
         sys.stderr.write("%s\n" % message)
-        self.log('Exit script with code %d' % retCode)
-        exit(retCode)
+        self.log('Exit script with code %d' % ret_code)
+        exit(ret_code)
     #--
 
 
@@ -1035,9 +1199,9 @@ class ShellWrapper(object):
         """ Assert """
         if not condition:
             frame = sys._getframe(1)
-            funName = frame.f_code.co_name
-            filename = frame.f_code.co_filename
-            message = 'Fatal exit on assert in %s (%s:%d)' % (funName, filename, filename)
+            fun_name = frame.f_code.co_name
+            file_name = frame.f_code.co_filename
+            message = 'Fatal exit on assert in %s (%s:%d)' % (fun_name, file_name, file_name)
             self.fatal_error(message)
         return True
     #--
@@ -1046,12 +1210,14 @@ class ShellWrapper(object):
     def find_files(self, mask='*.*', work_dir=''):
         """ Find files mathing a mask """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        if work_dir=='':
+        if work_dir == '':
             work_dir = os.getcwd()
         #---
         self.log('Mask = %s, Path=%s' % (mask, work_dir))
         matches = []
         for root, dirnames, filenames in os.walk(work_dir):
+            self.log("    %d files" % len(filenames))
+            self.log("    %d dirs" % len(dirnames))
             for filename in fnmatch.filter(filenames, mask):
                 matches.append(os.path.join(root, filename).replace("\\", "/"))
             #---
@@ -1060,23 +1226,12 @@ class ShellWrapper(object):
         return matches
     #---
 
-    def split_file_name(self, file_name):
-        """ Split file name into path, name, and extension """
-        r_path = os.path.dirname(file_name)
-        (r_name, r_ext) = os.path.splitext( os.path.basename(file_name))
-        ret_val = {}
-        ret_val['path'] = r_path
-        ret_val['name'] = r_name
-        ret_val['ext']  = r_ext
-        return ret_val
-    #---
 
     def run_clean(self, command, work_dir='', error_pattern=''):
         """ Run command and ensure that it went w/o issues """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         self.run(command, work_dir)
-        if (self.cret!=0):
-
+        if self.cret != 0:
             self.log("Terminating of RunClean, return code is not 0")
             header = '--- stdout of %s (%d) ---' % (command, self.cret)
             footer = '-'*len(header)
@@ -1090,32 +1245,30 @@ class ShellWrapper(object):
             self.exit(-1)
         #---
 
-        if len(error_pattern)>0:
+        if error_pattern:
             # pattern is given
-            if self.search_forward(self.cout, error_pattern)>-1:
+            out_hdr = '---- stdout of %s (%s) ----' % (command, self.cret)
+            err_hdr = '---- stderr of %s (%s) ----' % (command, self.cret)
+            footer = '------\n'
+            offset = ' '*4
+            if self.search_forward(self.cout, error_pattern) > -1:
                 self.log('Pattern %s is found in stdout' % error_pattern)
-                self.prntxt(self.cout, '    ', '---- stdout of %s (%s) ----' % (command, self.cret), '------\n')
-                self.prntxt(self.cerr, '    ', '---- stderr of %s (%s) ----' % (command, self.cret), '------\n')
+                self.prntxt(self.cout, offset, out_hdr, footer)
+                self.prntxt(self.cerr, offset, err_hdr, footer)
                 self.exit(-1)
             #---
 
-            if self.search_forward(self.cerr, error_pattern)>-1:
+            if self.search_forward(self.cerr, error_pattern) > -1:
                 self.log('Pattern %s is found in stderr' % error_pattern)
-                self.prntxt(self.cout, '    ', '---- stdout of %s (%s) ----' % (command, self.cret), '------\n')
-                self.prntxt(self.cerr, '    ', '---- stderr of %s (%s) ----' % (command, self.cret), '------\n')
+                self.prntxt(self.cout, offset, out_hdr, footer)
+                self.prntxt(self.cerr, offset, err_hdr, footer)
                 self.exit(-1)
             #---
         #---
         return
     #---
 
-    def one_dir_up(self,dir_name):
-        """ One directory up tree """
-        one_dir_up = re.sub('/[^/]+$', '', dir_name)
-        return one_dir_up
-    #---
-
-    def remove(self,dir_or_file_name):
+    def remove(self, dir_or_file_name):
         """ Delete file """
         self.log('--> %s %s' % ((sys._getframe(0)).f_code.co_name, dir_or_file_name))
         if os.path.isdir(dir_or_file_name):
@@ -1146,14 +1299,14 @@ class ShellWrapper(object):
                 break
             #---
 
-            parts = re.split(r'\s+',self.cout[0])
+            parts = re.split(r'\s+', self.cout[0])
             if len(parts) < 1:
                 self.log("ERROR: Command output format. Is output format  differ from expected?")
                 break
             #---
 
             raw_str = parts[4]
-            byte_str = re.split(':',raw_str)
+            byte_str = re.split(':', raw_str)
             if len(byte_str) < 6:
                 self.log("ERROR: Parsing error. Is output format  differ from expected?")
                 break
@@ -1197,7 +1350,6 @@ class ShellWrapper(object):
             script_file.write("    binObject+='%s'\n" % blk)
         #---
 
-
         script_file.write("    decoded = base64.b64decode(binObject)\n")
         script_file.write("    decompressed = zlib.decompress(decoded)\n")
         script_file.write("    f = open(fileName, 'wb')\n")
@@ -1209,7 +1361,10 @@ class ShellWrapper(object):
         script_file.write("if __name__ == '__main__':\n")
         script_file.write("    import argparse\n")
         script_file.write("    parser = argparse.ArgumentParser()\n")
-        script_file.write("    parser.add_argument('--file', action='store', default='%s', help='Export file name')\n" % default_file_name)
+        script_file.write("    parser.add_argument('--file',\n")
+        script_file.write("                        action='store',\n")
+        script_file.write("                        default='%s',\n" % default_file_name)
+        script_file.write("                        help='Export file name')\n")
         script_file.write("    args = parser.parse_args()\n")
         script_file.write("    Extract(args.file)\n")
         script_file.write("#---\n")
@@ -1225,23 +1380,27 @@ class ShellWrapper(object):
             self.log('Converting %s to %s.py' % (bin_file_name, py_object_name))
 
             original_data = open(bin_file_name, 'rb').read()
-            self.log('Original   %8d bytes (%s)' % (len(original_data), hashlib.sha256(original_data).hexdigest()))
+            self.log('Original   %8d bytes (%s)' % (
+                len(original_data),
+                hashlib.sha256(original_data).hexdigest()))
 
             compressed = zlib.compress(original_data)
-            self.log('Compressed %8d bytes (%s)' % (len(compressed), hashlib.sha256(compressed).hexdigest()))
+            self.log('Compressed %8d bytes (%s)' % (
+                len(compressed),
+                hashlib.sha256(compressed).hexdigest()))
 
             encoded = base64.b64encode(compressed)
-            self.log('Encoded    %8d bytes (%s)' % (len(encoded), hashlib.sha256(encoded).hexdigest()))
+            self.log('Encoded    %8d bytes (%s)' % (
+                len(encoded),
+                hashlib.sha256(encoded).hexdigest()))
 
             self._gen_pybin(encoded, py_object_name, bin_file_name)
-        except:
+        except IOError:
+            self.log("Warning: something went wrong")
+        except OSError:
             self.log("Warning: something went wrong")
         #---
         self.log('<-- %s' % (sys._getframe(0)).f_code.co_name)
     #---
 
 #-- end of class
-
-
-
-
