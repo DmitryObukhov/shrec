@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{9ab1302a-7d58-4ed2-a4c9-e7e1af175d10}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>shrecunittest.py</StartupFile>
+    <StartupFile>bin2py.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -19,6 +19,7 @@
     <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="bin2py.py" />
     <Compile Include="shellwrapper.py" />
     <Compile Include="shrec.py" />
     <Compile Include="shrecunittest.py">

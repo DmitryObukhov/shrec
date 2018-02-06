@@ -5,7 +5,10 @@ import re
 import hashlib
 from shellwrapper import ShellWrapper
 
+test_result = {}
+
 def TestCompareByPattern(wrapper, function_name, test_case_num, expected_pattern, actual_result ):
+    global test_result
     ret_val = 0
     print_template = "%s: %03d, %s"
     actual_result_str = "%s" % actual_result
@@ -21,6 +24,7 @@ def TestCompareByPattern(wrapper, function_name, test_case_num, expected_pattern
 
 
 def TestStringConversion(wrapper, function_name, test_case_num, expected_result, test_input ):
+    global test_result
     ret_val = 0
     print_template = "%s: %03d, %s"
     method_to_call = getattr(ShellWrapper, function_name)
@@ -36,6 +40,7 @@ def TestStringConversion(wrapper, function_name, test_case_num, expected_result,
 #---
 
 def TestTextConversion(wrapper, function_name, test_case_num, expected_text, test_input ):
+    global test_result
     ret_val = 0
     print_template = "%s: %03d, %s"
     method_to_call = getattr(ShellWrapper, function_name)
@@ -54,6 +59,7 @@ def TestTextConversion(wrapper, function_name, test_case_num, expected_text, tes
 #---
 
 def CompareTextLists(wrapper, function_name, test_case_num, expected_text, actual_text ):
+    global test_result
     ret_val = 0
     print_template = "%s: %03d, %s"
 
@@ -72,6 +78,7 @@ def CompareTextLists(wrapper, function_name, test_case_num, expected_text, actua
 
 
 def TestFileOperations(wrapper, function_name, test_case_num, file_name, expected_hash ):
+    global test_result
     hasher = hashlib.md5()
     ret_val = 0
     print_template = "%s: %03d, %s"
@@ -107,6 +114,7 @@ def stack_depth_plus_1(shw):
 
 
 def main():
+    global test_result
     err_count = 0
     shw = ShellWrapper(False, False, 'auto')
     err_count += TestStringConversion(shw,  'quoted_string',        1, '"abc"', 'abc')
@@ -190,7 +198,7 @@ def main():
     err_count += TestCompareByPattern(shw,  'longest_line',        2, 'ccc', shw.longest_line(['a','b','ccc']))
     err_count += TestCompareByPattern(shw,  'longest_line',        3, 'aaa', shw.longest_line(['aaa','b','c']))
 
-    err_count += TestCompareByPattern(shw,  'debug_info',        1, '\d\d\.\d\d\.\d\d\.\d\d\d\d\d\d\s\:\s', shw.debug_info('aaa'))
+    err_count += TestCompareByPattern(shw,  'debug_string',        1, '\d\d\.\d\d\.\d\d\.\d\d\d\d\d\d\s\:\s', shw.debug_string('aaa'))
 
 
     err_count += TestCompareByPattern(shw,  'minlen',        1, '1', shw.minlen(['a','bbb','c']))
@@ -261,6 +269,28 @@ def main():
     cur0 = shw._call_stack_depth()
     (cur1,cur2) = stack_depth_plus_1(shw)
     print(cur0,cur1,cur2)
+    actual = []
+    actual.append(cur0)
+    actual.append(cur1)
+    actual.append(cur2)
+    expected = [7,8,9]
+
+    # todo compare expected and actual
+
+    shw.prntxt(shw.log_list)
+
+    shw.log_list.clear()
+    shw.log('test str')
+    shw.prntxt(shw.log_list)
+
+    shw.log_list.clear()
+    shw._logtest()
+    shw.prntxt(shw.log_list)
+
+    shw.log_list.clear()
+    shw.run('ping 127.0.0.1')
+    shw.prntxt(shw.log_list)
+
 
     print("\nDetected %d errors\n\n"  % err_count)
     return -1 * err_count

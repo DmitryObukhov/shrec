@@ -13,9 +13,7 @@ import random
 import string
 import inspect
 import tempfile
-import zlib
-import hashlib
-import base64
+import getpass
 from time import time
 from time import ctime
 
@@ -79,10 +77,14 @@ class ShellWrapper(object):
         self.last_written_file = ''
         self.last_backup_file = ''
         self.caller = caller_script
-        self.log_baseline = 3
+
+        stack = inspect.stack()
+        self.log_baseline = len(stack)
         self.log_offset_str = ' '*4
         self.log('caller=%s' % caller_script)
         self.log('self=%s' % __file__)
+        self.log('user=%s' % getpass.getuser())
+
         if self.debug:
             self.log('==== System information')
             self.log("platform.system=%s" % self.system)
@@ -630,8 +632,8 @@ class ShellWrapper(object):
     #---
 
     @staticmethod
-    def debug_info(message_str):
-        """  --> Debug info """
+    def debug_string(message_str):
+        """  --> Debug string for use with log """
         # todo: unittest
         frame = sys._getframe(1)
         fun_name = frame.f_code.co_name
@@ -647,6 +649,21 @@ class ShellWrapper(object):
 
         return ret_str
     #--- end of method
+
+    @staticmethod
+    def debug_info(message_str):
+        """  --> Debug info """
+        callerframerecord = inspect.stack()[1]    # 0 represents this line, 1 represents line at caller
+        frame = callerframerecord[0]
+        info = inspect.getframeinfo(frame)
+        ret_val = {}
+        ret_val['filename'] = info.filename     # __FILE__
+        ret_val['function'] = info.function     # __FUNCTION__
+        ret_val['lineno'] = info.lineno         # __LINE__
+        return ret_val
+    #--- end of method
+
+
 
     @staticmethod
     def parse_shell_output(shell_output_str):
@@ -669,25 +686,10 @@ class ShellWrapper(object):
     #---
 
 
-
-
-    ###############################################################################################
-    #     ____  ____    _   _ _   _ ___ _____ _____ _____ ____ _____ _____ ____
-    #    |___ \| __ )  | | | | \ | |_ _|_   _|_   _| ____/ ___|_   _| ____|  _ \
-    #      __) |  _ \  | | | |  \| || |  | |   | | |  _| \___ \ | | |  _| | | | |
-    #     / __/| |_) | | |_| | |\  || |  | |   | | | |___ ___) || | | |___| |_| |
-    #    |_____|____/   \___/|_| \_|___| |_|   |_| |_____|____/ |_| |_____|____/
-    #
-    ###############################################################################################
-
-
-
-
-
-    def log(self, message):
+    def log(self, message, offset_correction=0):
         """ Save message in execution history """
         stack = inspect.stack()
-        offset = self.log_offset_str * (len(stack) - self.log_baseline)
+        offset = self.log_offset_str * (len(stack) - self.log_baseline + offset_correction)
         if self.debug:
             print (offset + message)
         #---
@@ -700,68 +702,54 @@ class ShellWrapper(object):
         return True
     #---
 
-    def ask_to_continue(self, message=''):
-        """ Ask for user input to continue or stop """
-        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        if message != '':
-            self.prn(message)
+
+    def _log_func(self, entry=True, message=''):
+        callerframerecord = inspect.stack()[1]    # 0 represents this line, 1 represents line at caller
+        frame = callerframerecord[0]
+        info1 = inspect.getframeinfo(frame)
+
+        callerframerecord = inspect.stack()[2]    # 0 represents this line, 1 represents line at caller
+        frame = callerframerecord[0]
+        info2 = inspect.getframeinfo(frame)
+
+        if entry:
+            self.log('---> %s (%s:%d, %s) %s' % (info1.function, info2.filename, info2.lineno, info2.function, message), -2)
         else:
-            self.prn("Continue execution?")
+            self.log('<--- %s %s' % (info1.function, message), -2)
         #---
-        var = raw_input('')
-        if var == 'n':
-            self.log('User terminated')
-            self.exit(0)
-        #---
-        self.log('User choose to continue...')
-        return True
     #---
 
-
-    def log_caller_function(self):
-        """ LogCallerFunction """
-        self.log('--> %s' % (sys._getframe(1)).f_code.co_name)
-        return True
-    #---
-
-
-    def log_extend(self, array_of_strings):
+    def log_extend(self, array_of_strings, offset_correction=-1):
         """ Log a list of strings """
-        stack = inspect.stack()
-        offset = self.log_offset_str * (len(stack) - self.log_baseline)
         for cur_str in array_of_strings:
-            self.log(offset + cur_str)
+            self.log(cur_str, offset_correction)
         #---
         return True
     #---
 
+    def _logtest2(self):
+        self._log_func(True)
+        self.log('body of test 2')
+        self._log_func(False)
+    #---
 
 
-    def _run_silent(self, command_str, working_directory=''):
-        """ Run shall command without log messages """
-        actual_directory = os.getcwd()
-        if working_directory:
-            os.chdir(working_directory)
-        #--
-        process = subprocess.Popen(command_str,
-                                   shell=True,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-
-        self.raw_output, self.raw_error = process.communicate()
-        if working_directory:
-            os.chdir(actual_directory)
-        #--
-        return process.returncode
+    def _logtest(self):
+        self._log_func(True)
+        self.log('body of test 1')
+        self._logtest2()
+        self.log_extend(['a', 'b', 'c'])
+        self._log_func(False)
     #---
 
 
     def run(self, command_str, working_directory='', silent=False):
-        """ Run shall command """
+        """ Run shell command """
+        self._log_func(True)
         if command_str == '':
+            self._log_func(False, 'command str is empty')
             return True
         #---
-        self.log('--> %s     %s' % ((sys._getframe(0)).f_code.co_name, command_str))
         self.cout = []
         self.parsed = []
         self.cerr = []
@@ -780,9 +768,8 @@ class ShellWrapper(object):
 
         self.log("Continue in %s" % (os.getcwd()))
 
-        self.process = subprocess.Popen(self.command,
-                                        shell=True,
-                                        stdout=subprocess.PIPE,
+        self.process = subprocess.Popen(self.command, shell=True, 
+                                        stdout=subprocess.PIPE, 
                                         stderr=subprocess.PIPE)
 
         pid = self.process.pid
@@ -798,10 +785,21 @@ class ShellWrapper(object):
             self.cout = []
             self.raw_output = ""
 
+            empty_count = 0
+            empty_count_treshold = 10
             for line in iter(self.process.stdout.readline, ''):
+                line = line.decode('utf-8')
                 line = line.rstrip()
-                self.prn("%s" % line)
-                self.cout.append(line)
+                if line == '':
+                    empty_count += 1
+                else:
+                    empty_count = 0
+                    self.prn("%s" % line)
+                    self.cout.append(line)
+                #---
+                if empty_count > empty_count_treshold:
+                    break
+                #---
             #---
             self.raw_error = self.process.stderr.readlines()
             self.process.stdout.close()
@@ -811,7 +809,7 @@ class ShellWrapper(object):
             self.raw_output = "\n".join(self.cout)
         #---
 
-        self.log('Thread finished with return code %d' % self.cret)
+        self.log('Process finished with return code %d' % self.cret)
 
         offset = ' '*4
 
@@ -852,7 +850,126 @@ class ShellWrapper(object):
             self.error_count += 1
         #---
 
+        self._log_func(False)
         return self.cret == 0
+    #---
+
+    def _run_silent(self, command_str, working_directory=''):
+        """ Run shall command without log messages """
+        self._log_func(True)
+        self.log(command_str)
+        actual_directory = os.getcwd()
+        if working_directory:
+            os.chdir(working_directory)
+        #--
+        process = subprocess.Popen(command_str,
+                                   shell=True,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+
+        self.raw_output, self.raw_error = process.communicate()
+        if working_directory:
+            os.chdir(actual_directory)
+        #--
+        self._log_func(False)
+        return process.returncode
+    #---
+
+    def run_as_user(self, command, work_dir, user=''):
+        """ Run shall command as specific user """
+        self._log_func(True)
+        self.log('command %s' % command)
+        self.log('user    %s' % user)
+        self.log('dir     %s' % work_dir)
+        if user:
+            # Run it as different user
+            sudo_cmd = "sudo -H -u %s bash -c " % user
+            cd_cmd = ''
+            if work_dir:
+                cd_cmd = 'cd %s; ' % work_dir
+            #---
+            command = sudo_cmd + "'" + cd_cmd + command + "'"
+        #---
+        self._log_func(False)
+        return self.run(command)
+    #---
+
+
+    def write_file(self, file_name, str_array=None):
+        """ Write file """
+        self._log_func(True)
+        self.errcode = 0
+        self.last_written_file = file_name
+        self.last_backup_file = ''
+        if os.path.isfile(file_name):
+            self.last_backup_file = file_name + '.bak'
+            self.log('Saving backup %s' % self.last_backup_file)
+            shutil.copy(file_name, self.last_backup_file)
+        #-- end if
+
+        try:
+            file_to_save = open(file_name, 'w')
+            buffer_to_save = []
+            if str_array is None:
+                buffer_to_save = self.text
+            else:
+                buffer_to_save = str_array
+
+            for item in buffer_to_save:
+                file_to_save.write("%s\n" % item)
+            #--
+            file_to_save.flush()
+            file_to_save.close()
+            self.log("Saved %d lines to %s" % (len(buffer_to_save), file_name))
+            return True
+        except IOError:
+            self.errcode = -2
+            self.errmsg = "ERROR (%d): Cannot write to %s" % (self.errcode, file_name)
+            self.log(self.errmsg)
+            return False
+        #---
+        self._log_func(False)
+        return False
+    #---
+
+
+
+    ###############################################################################################
+    #     ____  ____    _   _ _   _ ___ _____ _____ _____ ____ _____ _____ ____
+    #    |___ \| __ )  | | | | \ | |_ _|_   _|_   _| ____/ ___|_   _| ____|  _ \
+    #      __) |  _ \  | | | |  \| || |  | |   | | |  _| \___ \ | | |  _| | | | |
+    #     / __/| |_) | | |_| | |\  || |  | |   | | | |___ ___) || | | |___| |_| |
+    #    |_____|____/   \___/|_| \_|___| |_|   |_| |_____|____/ |_| |_____|____/
+    #
+    ###############################################################################################
+
+
+
+
+
+
+    def ask_to_continue(self, message=''):
+        """ Ask for user input to continue or stop """
+        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
+        if message != '':
+            self.prn(message)
+        else:
+            self.prn("Continue execution?")
+        #---
+        var = raw_input('')
+        if var == 'n':
+            self.log('User terminated')
+            self.exit(0)
+        #---
+        self.log('User choose to continue...')
+        return True
+    #---
+
+
+
+
+
+
 
 
 
@@ -883,20 +1000,6 @@ class ShellWrapper(object):
     #---
 
 
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self.log('--> %s' % (sys._getframe(0)).f_code.co_name + " user=%s" % user)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        return self.run(command)
-    #---
 
     def _read_new_buffer(self, file_name):
         """ Read file """
@@ -917,8 +1020,6 @@ class ShellWrapper(object):
             self.log(self.errmsg)
             return (False, [])
         #---
-
-
 
         try:
             ret_buf = input_file.readlines()
@@ -949,40 +1050,6 @@ class ShellWrapper(object):
         return res
     #---
 
-    def write_file(self, file_name, str_array=None):
-        """ Write file """
-        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        self.errcode = 0
-        self.last_written_file = file_name
-        self.last_backup_file = ''
-        if os.path.isfile(file_name):
-            self.last_backup_file = file_name + '.bak'
-            self.log('Saving backup %s' % self.last_backup_file)
-            shutil.copy(file_name, self.last_backup_file)
-        #-- end if
-
-        try:
-            file_to_save = open(file_name, 'w')
-            buffer_to_save = []
-            if str_array is None:
-                buffer_to_save = self.text
-            else:
-                buffer_to_save = str_array
-
-            for item in buffer_to_save:
-                file_to_save.write("%s\n" % item)
-            #--
-            file_to_save.flush()
-            file_to_save.close()
-            self.log("Saved %d lines to %s" % (len(buffer_to_save), file_name))
-            return True
-        except IOError:
-            self.errcode = -2
-            self.errmsg = "ERROR (%d): Cannot write to %s" % (self.errcode, file_name)
-            self.log(self.errmsg)
-            return False
-        return False
-    #---
 
     def _diff_last_file_write(self):
         """ Diff last written file """
@@ -1192,14 +1259,21 @@ class ShellWrapper(object):
     #--
 
 
-    def exit(self, ret_code=0, message=''):
+    def exit(self, ret_code=-666, message=''):
         """ exit script """
         self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
         if message != '':
             self.log_list.append(message)
             print(message)
         #---
-        self.log('Exit script with code %d' % ret_code)
+        if ret_code == -666:
+            ret_code = self.cret
+        #---
+        if message == '':
+            self.log('Exit script with code %d' % ret_code)
+        else:
+            self.log('Exit %d (%s)' % (ret_code, message))
+        #---
         exit(ret_code)
     #--
 
@@ -1288,7 +1362,7 @@ class ShellWrapper(object):
     #---
 
     def remove(self, dir_or_file_name):
-        """ Delete file """
+        """ Delete file or directory """
         self.log('--> %s %s' % ((sys._getframe(0)).f_code.co_name, dir_or_file_name))
         if os.path.isdir(dir_or_file_name):
             self.log('%s is directory' % dir_or_file_name)
@@ -1337,89 +1411,6 @@ class ShellWrapper(object):
             break
         #----------------------
         return ret_val
-    #---
-
-
-    def _gen_pybin(self, export_data, obj_name, default_file_name):
-        """ Generate script to restore binary file """
-        script_file = open(obj_name+'.py', 'wt')
-        script_file.write("#!/usr/bin/python\n")
-        script_file.write("\n")
-        script_file.write("__all__ = ['Export']\n")
-        script_file.write("\n")
-        script_file.write("# This is automatically generated file. Do not edit!\n")
-        script_file.write("# Usage:\n")
-        script_file.write("#     import %s\n" % obj_name)
-        script_file.write("#     %s.Extract()\n" % obj_name)
-        script_file.write("# or in command line\n")
-        script_file.write("#     python %s.py [fileName]\n" % obj_name)
-        script_file.write("\n")
-        script_file.write("import zlib\n")
-        script_file.write("import binascii\n")
-        script_file.write("import hashlib\n")
-        script_file.write("import base64\n")
-        script_file.write("import sys\n")
-        script_file.write("\n")
-        script_file.write("def Extract(fileName='%s'):\n" % default_file_name)
-        script_file.write("    binObject=''\n")
-
-        data_array = self.fold(export_data, 100)
-
-        for blk in data_array:
-            script_file.write("    binObject+='%s'\n" % blk)
-        #---
-
-        script_file.write("    decoded = base64.b64decode(binObject)\n")
-        script_file.write("    decompressed = zlib.decompress(decoded)\n")
-        script_file.write("    f = open(fileName, 'wb')\n")
-        script_file.write("    f.write(decompressed)\n")
-        script_file.write("    f.flush()\n")
-        script_file.write("    f.close()\n")
-        script_file.write("#---\n")
-        script_file.write("\n")
-        script_file.write("if __name__ == '__main__':\n")
-        script_file.write("    import argparse\n")
-        script_file.write("    parser = argparse.ArgumentParser()\n")
-        script_file.write("    parser.add_argument('--file',\n")
-        script_file.write("                        action='store',\n")
-        script_file.write("                        default='%s',\n" % default_file_name)
-        script_file.write("                        help='Export file name')\n")
-        script_file.write("    args = parser.parse_args()\n")
-        script_file.write("    Extract(args.file)\n")
-        script_file.write("#---\n")
-        script_file.write("\n")
-    #---
-
-
-
-    def bin2py(self, bin_file_name, py_object_name):
-        """ Generate Python script to restore binary file """
-        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        try:
-            self.log('Converting %s to %s.py' % (bin_file_name, py_object_name))
-
-            original_data = open(bin_file_name, 'rb').read()
-            self.log('Original   %8d bytes (%s)' % (
-                len(original_data),
-                hashlib.sha256(original_data).hexdigest()))
-
-            compressed = zlib.compress(original_data)
-            self.log('Compressed %8d bytes (%s)' % (
-                len(compressed),
-                hashlib.sha256(compressed).hexdigest()))
-
-            encoded = base64.b64encode(compressed)
-            self.log('Encoded    %8d bytes (%s)' % (
-                len(encoded),
-                hashlib.sha256(encoded).hexdigest()))
-
-            self._gen_pybin(encoded, py_object_name, bin_file_name)
-        except IOError:
-            self.log("Warning: something went wrong")
-        except OSError:
-            self.log("Warning: something went wrong")
-        #---
-        self.log('<-- %s' % (sys._getframe(0)).f_code.co_name)
     #---
 
 #-- end of class

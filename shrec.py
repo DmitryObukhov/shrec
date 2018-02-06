@@ -2,23 +2,8 @@
 """ SHell RECipes module """
 from __future__ import print_function
 import argparse
+import getpass
 from shellwrapper import ShellWrapper
-#import subprocess
-#import os
-#import sys
-#import shutil
-#import platform
-#import re
-#from datetime import datetime
-#import random
-#import string
-#import inspect
-#import tempfile
-#import zlib
-#import hashlib
-#import base64
-#from time import time
-#from time import ctime
 
 __author__ = 'dmitry.obukhov'
 
@@ -147,29 +132,17 @@ class ShellRecipes(object):
 def main():
     """ main function to parse arguments """
     exit_code = -1
-    parser = argparse.ArgumentParser(description="Shell Receipes Engine", \
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(description="Shell Receipes Engine", formatter_class=argparse.RawDescriptionHelpFormatter)
     # Global arguments
-    parser.add_argument('--debug', action='store_true', default=False, help='Debug execution mode')
-    parser.add_argument('--quiet', action='store_true', default=False, help='Quiet execution mode')
+    parser.add_argument("--debug", action="store_true", default=False, help="Debug execution mode")
+    parser.add_argument("--quiet", action="store_true", default=False, help="Quiet execution mode")
 
     subparsers = parser.add_subparsers(help='Supported commands', dest='command')
 
     setup_parser = subparsers.add_parser('setup', help='Setup Python module')
     install_parser = subparsers.add_parser('install', help='Install shrec as system utility')
-    utest_parser = subparsers.add_parser('unittest', help='Unit test the module')
-
-    #r001d = recipe_subparser.add_parser('enablerootssh',    help='Enable root ssh')
-    #r001n = recipe_subparser.add_parser('disablerootssh',   help='Disable root ssh')
-    #r002d = recipe_subparser.add_parser('enablepm',         help='Enable power management')
-    #r002n = recipe_subparser.add_parser('disablepm',        help='Disable power management')
-    #r003d = recipe_subparser.add_parser('enableip6',        help='Enable support of IP v.6')
-    #r003n = recipe_subparser.add_parser('disableip6',       help='Disable support of IP v.6')
-    #r004d = recipe_subparser.add_parser('enabletcg',        help='Enable support of TCG storage')
-    #r004n = recipe_subparser.add_parser('disabletcg',       help='Disable support of TCG storage')
-
-    #r005  = recipe_subparser.add_parser('sethostname',      help='Set hostname from MAC or Random')
-    #r005.add_argument('--naming', action='store', default='mac', help='Naming: {mac,rnd}')
+    template_parser = subparsers.add_parser('template', help='Install shrec as system utility')
+    template_parser.add_argument('script', action='store', nargs='?', default='', help='Template file')
 
     args = parser.parse_args()
 
@@ -190,6 +163,50 @@ def main():
         batch.prntxt(batch.cout, '', '-- installation log --')
         batch.exit(0)
     #--
+
+    if args.command == 'install':
+        # todo: installation, copy list of scripts to /usr/local/bin
+        pass
+    #--
+
+    if args.command == 'template':
+        batch = ShellWrapper(args.debug, args.quiet, "auto")
+        template_script = [ \
+                "#!/usr/bin/env python", \
+                '""" SHell RECipe: """', \
+                'from __future__ import print_function', \
+                'import argparse', \
+                "from shellwrapper import ShellWrapper", \
+                '__author__ = "%s"' % getpass.getuser(), \
+                '', \
+                'def main():', \
+                '    """ main function """', \
+                '    parser = argparse.ArgumentParser(description="Shell Receipe", formatter_class=argparse.RawDescriptionHelpFormatter)', \
+                '    parser.add_argument("--debug", action="store_true", default=False, help="Debug execution mode")', \
+                '    parser.add_argument("--quiet", action="store_true", default=False, help="Quiet execution mode")', \
+                '    args = parser.parse_args()', \
+                '', \
+                '    # Create shell wrapper and perform necessary commands', \
+                '    batch = ShellWrapper(args.debug, args.quiet, "auto")', \
+                '    # put your code here. For example, batch.run("ping 127.0.0.1")', \
+                '    batch.exit(0) # batch.exit terminates the script', \
+                '#---', \
+                '', \
+                'if __name__ == "__main__":', \
+                '    main()', \
+                '#---', \
+                "" \
+            ]
+        #---
+        if args.script == '':
+            batch.prntxt(template_script)
+        else:
+            batch.save(template_script, args.script)
+        #---
+        batch.exit()
+    #--
+
+
 
     print("Unhandled command %s" % args.command)
     return -1
