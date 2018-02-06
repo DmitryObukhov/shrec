@@ -66,10 +66,10 @@ class ShellWrapper(object):
         self.log_file_name = log_file
         if self.log_file_name != '':
             if self.log_file_name == "auto":
-                fn_split = self.split_file_name(caller_script)
+                script_name = self.fname_name(caller_script)
                 self.log_file_name = os.path.normpath(tempfile.gettempdir() +
                                                       '/' +
-                                                      fn_split['name'] +
+                                                      script_name +
                                                       '__' +
                                                       self.timestamp() +
                                                       '.tmp')
@@ -311,6 +311,8 @@ class ShellWrapper(object):
         for idx in range(0, len(txt)):
             matches = re.findall(pattern, txt[idx])
             if matches:
+                pass #
+            else:
                 filtered.append(txt[idx])
             #--
         #--
@@ -466,9 +468,9 @@ class ShellWrapper(object):
             if len(cur_str) < left_col:
                 output.append('')
             elif len(cur_str) < right_col:
-                output.append(cur_str[left_col:])
+                output.append(cur_str[0:left_col])
             else:
-                output.append(cur_str[left_col:right_col])
+                output.append(cur_str[0:left_col] + cur_str[right_col:])
         #--
         return output
     #---------------------
@@ -491,15 +493,6 @@ class ShellWrapper(object):
         return output
     #---------------------
 
-    ###############################################################################################
-    #     ____  ____    _   _ _   _ ___ _____ _____ _____ ____ _____ _____ ____
-    #    |___ \| __ )  | | | | \ | |_ _|_   _|_   _| ____/ ___|_   _| ____|  _ \
-    #      __) |  _ \  | | | |  \| || |  | |   | | |  _| \___ \ | | |  _| | | | |
-    #     / __/| |_) | | |_| | |\  || |  | |   | | | |___ ___) || | | |___| |_| |
-    #    |_____|____/   \___/|_| \_|___| |_|   |_| |_____|____/ |_| |_____|____/
-    #
-    ###############################################################################################
-
     @staticmethod
     def one_dir_up(dir_name):
         """ One directory up tree """
@@ -507,9 +500,8 @@ class ShellWrapper(object):
         return one_dir_up
     #---
 
-
     @staticmethod
-    def split_file_name(file_name):
+    def _split_file_name(file_name):
         """ Split file name into path, name, and extension """
         r_path = os.path.dirname(file_name)
         (r_name, r_ext) = os.path.splitext(os.path.basename(file_name))
@@ -520,40 +512,29 @@ class ShellWrapper(object):
         return ret_val
     #---
 
+    @staticmethod
+    def fname_path(file_name):
+        """ Split file name into path, name, and extension """
+        parts = ShellWrapper._split_file_name(file_name)
+        return parts['path']
+    #---
 
     @staticmethod
-    def parse_shell_output(shell_output_str):
-        """  --> 'lsdahfl897klj' """
-        # todo: unittest
-        ret_val = []
-        ret_val = re.split('[\r\n]+', shell_output_str)
-        for idx in range(0, len(ret_val)):
-            ret_val[idx] = ret_val[idx].rstrip()
-        #---
-        return ret_val
-    #--- end of method
-
+    def fname_name(file_name):
+        """ Split file name into path, name, and extension """
+        r_path = os.path.dirname(file_name)
+        (r_name, r_ext) = os.path.splitext(os.path.basename(file_name))
+        return r_name
+    #---
 
     @staticmethod
-    def debug_info(message_str):
-        """  --> Debug info """
-        # todo: unittest
-        frame = sys._getframe(1)
-        fun_name = frame.f_code.co_name
-        line_number = frame.f_lineno
-        file_name = frame.f_code.co_filename
-
-        ret_str = "%s : %s (%s:%04d) : %s" % (
-            ShellWrapper.timestamp('%H.%M.%S.%f'),
-            fun_name,
-            file_name,
-            line_number,
-            message_str)
-
-        return ret_str
-    #--- end of method
-
-
+    def fname_ext(file_name):
+        """ Split file name into path, name, and extension """
+        r_path = os.path.dirname(file_name)
+        (r_name, r_ext) = os.path.splitext(os.path.basename(file_name))
+        # return everything except starting dot (.ext --> ext)
+        return r_ext[1:]
+    #---
     @staticmethod
     def unify_length(input_str, maxlen=-1, minlen=-1, spacer=' '):
         """  Cut string or add spacers to keep length for all lines """
@@ -597,7 +578,9 @@ class ShellWrapper(object):
 
         # if the header is defined, add header after indent
         if header != '':
-            ret_val.append("%s%s%s" % (indent, line_number_placeholder, header))
+            cur_line = "%s%s" % (indent,header)
+            cur_line = ShellWrapper.unify_length(cur_line, maxlen, minlen)
+            ret_val.append(cur_line)
         #---
 
         for line_idx in range(0, len(txt)):
@@ -613,7 +596,9 @@ class ShellWrapper(object):
         #----------------------------- end for
 
         if footer != '':
-            ret_val.append("%s%s%s" % (indent, line_number_placeholder, footer))
+            cur_line = "%s%s" % (indent,footer)
+            cur_line = ShellWrapper.unify_length(cur_line, maxlen, minlen)
+            ret_val.append(cur_line)
         #---
 
         return ret_val
@@ -644,17 +629,37 @@ class ShellWrapper(object):
         #---
     #---
 
+    @staticmethod
+    def debug_info(message_str):
+        """  --> Debug info """
+        # todo: unittest
+        frame = sys._getframe(1)
+        fun_name = frame.f_code.co_name
+        line_number = frame.f_lineno
+        file_name = frame.f_code.co_filename
 
+        ret_str = "%s : %s (%s:%04d) : %s" % (
+            ShellWrapper.timestamp('%H.%M.%S.%f'),
+            fun_name,
+            file_name,
+            line_number,
+            message_str)
 
+        return ret_str
+    #--- end of method
 
-
-
-
-
-
-
-
-
+    @staticmethod
+    def parse_shell_output(shell_output_str):
+        """  --> 'lsdahfl897klj' """
+        # todo: unittest
+        ret_val = []
+        ret_val = re.split('[\r\n]+', shell_output_str)
+        for idx in range(0, len(ret_val)):
+            ret_val[idx] = ret_val[idx].rstrip()
+        #---
+        ret_val = ShellWrapper.remove_empty_lines(ret_val)
+        return ret_val
+    #--- end of method
 
     @staticmethod
     def _call_stack_depth():
@@ -662,6 +667,20 @@ class ShellWrapper(object):
         stack = inspect.stack()
         return len(stack)
     #---
+
+
+
+
+    ###############################################################################################
+    #     ____  ____    _   _ _   _ ___ _____ _____ _____ ____ _____ _____ ____
+    #    |___ \| __ )  | | | | \ | |_ _|_   _|_   _| ____/ ___|_   _| ____|  _ \
+    #      __) |  _ \  | | | |  \| || |  | |   | | |  _| \___ \ | | |  _| | | | |
+    #     / __/| |_) | | |_| | |\  || |  | |   | | | |___ ___) || | | |___| |_| |
+    #    |_____|____/   \___/|_| \_|___| |_|   |_| |_____|____/ |_| |_____|____/
+    #
+    ###############################################################################################
+
+
 
 
 
