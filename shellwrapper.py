@@ -14,6 +14,7 @@ import string
 import inspect
 import tempfile
 import getpass
+
 from time import time
 from time import ctime
 
@@ -932,7 +933,34 @@ class ShellWrapper(object):
         return False
     #---
 
+    def prn(self, str_message):
+        """ print message and save log """
+        self.log(str_message)
+        if not self.quiet:
+            print(str_message)
+        return True
+    #--
 
+    def find_files(self, mask='*.*', work_dir=''):
+        """ Find files mathing a mask """
+        self._log_func(True)
+        if work_dir == '':
+            work_dir = os.getcwd()
+        #---
+        self.log('Mask = %s, Path=%s' % (mask, work_dir))
+        matches = []
+        for root, dirnames, filenames in os.walk(work_dir):
+            #self.log("    %d files" % len(filenames))
+            #self.log("    %d dirs" % len(dirnames))
+            for filename in fnmatch.filter(filenames, mask):
+                fname = os.path.join(root, filename)
+                fname = os.path.abspath(fname)
+                matches.append(fname)
+            #---
+        #---
+        self._log_func(False,"Found %d files" % len(matches))
+        return matches
+    #---
 
     ###############################################################################################
     #     ____  ____    _   _ _   _ ___ _____ _____ _____ ____ _____ _____ ____
@@ -943,9 +971,34 @@ class ShellWrapper(object):
     #
     ###############################################################################################
 
+    def match_os(self, required_os):
+        """ Enable root login to SSH server """
+        if self.system != required_os: # Check the current platform
+            self.prn("Current platform is %s" % batch.system)
+            self.prn("Command is supported only for %s platforms, terminating" % required_os)
+            self.prn("See details in %s" % batch.LogFile)
+            return False
+        #---
+        return True
+    #---
 
 
+    def env_read(self, var_name):
+        """ Read environment variable """
+        self._log_func(True)
+        ret_val = ''
+        # todo: implementation
+        self._log_func(False)
+        return ret_val
+    #---
 
+    def env_write(self, var_name, val, persistent=False):
+        """ Write environment variable """
+        self._log_func(True)
+        # todo: implementation
+        self._log_func(False)
+        return True
+    #---
 
 
     def ask_to_continue(self, message=''):
@@ -1250,13 +1303,6 @@ class ShellWrapper(object):
     #---------------------
 
 
-    def prn(self, str_message):
-        """ print message and save log """
-        self.log(str_message)
-        if not self.quiet:
-            print(str_message)
-        return True
-    #--
 
 
     def exit(self, ret_code=-666, message=''):
@@ -1300,24 +1346,6 @@ class ShellWrapper(object):
     #--
 
 
-    def find_files(self, mask='*.*', work_dir=''):
-        """ Find files mathing a mask """
-        self.log('--> %s' % (sys._getframe(0)).f_code.co_name)
-        if work_dir == '':
-            work_dir = os.getcwd()
-        #---
-        self.log('Mask = %s, Path=%s' % (mask, work_dir))
-        matches = []
-        for root, dirnames, filenames in os.walk(work_dir):
-            self.log("    %d files" % len(filenames))
-            self.log("    %d dirs" % len(dirnames))
-            for filename in fnmatch.filter(filenames, mask):
-                matches.append(os.path.join(root, filename).replace("\\", "/"))
-            #---
-        #---
-        self.log("<-- Found %d files" % len(matches))
-        return matches
-    #---
 
 
     def run_clean(self, command, work_dir='', error_pattern=''):
