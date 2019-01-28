@@ -890,6 +890,35 @@ class Shell(object):
     #---
 
     @staticmethod
+    def normalize_file_name(name):
+        newname = name
+        # append underscores as placeholders
+        newname = re.sub(r'([\^\D]{1})(\d\d\d)(\D)', r'\1_\2\3', newname)
+        newname = re.sub(r'([\^\D]{1})(\d\d)(\D)', r'\1__\2\3', newname)
+        newname = re.sub(r'([\^\D]{1})(\d)(\D)', r'\1___\2\3', newname)
+        # convert underscores to leading zeroes
+        newname = re.sub(r'(___)(\d)(\D)', r'000\2\3', newname)
+        newname = re.sub(r'(__)(\d\d)(\D)', r'00\2\3', newname)
+        newname = re.sub(r'(_)(\d\d\d)(\D)', r'0\2\3', newname)
+        return newname
+    #---
+
+
+
+    @staticmethod
+    def normalize_names(mask, workdir=''):
+        flist = Shell.find_files(mask, workdir)
+        newnames = []
+        for name in flist:
+            newname = Shell.normalize_file_name(name)
+            if name != newname:
+                os.rename(name,newname)
+            #---
+        #---
+    #---
+
+
+    @staticmethod
     def remove(dir_or_file_name):
         """ Delete file or directory
             Guaranteed destruction

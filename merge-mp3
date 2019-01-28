@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+
+import os
+import re
+from swissknife import Shell as sh
+from swissknife import Text as tx
+
+# global structure for arguments
+args = {}
+
+
+def merge_binary_files(A, B, C):
+    import shutil
+    fout = open(C, 'wb')
+    for n in [A, B]:
+        if os.path.isfile(n):
+            fin = file(n, 'rb')
+            shutil.copyfileobj(fin, fout, 65536)
+            fin.close()
+        #---
+    #---
+    fout.close()
+#---
+
+def merge_mp3(params):
+    worklist = {}
+    worklist['files'] = []
+    worklist['files'].extend(params['files'])
+    worklist['info'] = {}
+    total_duration = 0
+    for name in params['files']:
+        res = sh.run('mp3info -r v -p "%%F, %%S, %%o, %%q, %%r\n" "%s"' % name, silent=True)
+        info = re.split(', ', res['stdout'][0])
+        key = info[0]
+        currec = {}
+        cur_duration = int(info[1])
+        currec['duration'] = cur_duration
+        total_duration += cur_duration
+        currec['channel'] = info[2]
+        currec['sampling'] = int(info[3])
+        currec['rate'] = info[4]
+
+        worklist['info'][key] = currec
+    #---
+    worklist['total'] = total_duration
+
+    merged = 'merged.mp3'
+    for k in worklist['info'].keys():
+        info = worklist['info'][k]
+        if (info['rate'] == '64'):
+            merge_binary_files(merged, k, merged)
+        #---
+
+        tx.print(info)
+    #---
+    res = sh.run('mp3info -r v -p "%%F, %%S, %%o, %%q, %%r\n" "%s"' % merged, silent=True)
+    tx.print(res)
+
+
+#---
+
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug",  action="store_true", default=False)
+    parser.add_argument("--dryrun", action="store_true", default=False)
+    parser.add_argument("files", action="store", default=".", nargs='*')
+    args = vars(parser.parse_args())
+    if args['debug']:
+        tx.print(args, '    ', 'Arguments')
+    #---
+    merge_mp3(args)
+#-----------------------------------------------

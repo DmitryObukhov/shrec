@@ -3,17 +3,30 @@
 # 2. add to ~/.bashrc the code below
 #
 # MY_EMAIL=xxx
+# MY_ID=xxx
 # DOMAIN_PASSWORD=xxx
 # DEFREPO=xxx
 # BITBUCKET_USER=xxx
 # BITBUCKET_PASSWORD=xxx
 # source ~/shrec/bash_functions.sh
 
+PATH=$PATH:~/shrec
+
 
 function reloadbash()
 {
     source ~/.bashrc
 }
+
+
+function new-shrec()
+{
+    new_shrec_name=~/shrec/$1
+    cp ~/shrec/base_script.py $new_shrec_name
+    chmod 777 $new_shrec_name
+}
+
+
 
 
 function git-acp ()
