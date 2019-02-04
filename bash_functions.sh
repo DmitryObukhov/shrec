@@ -65,6 +65,31 @@ function git-new ()
         git status
 }
 
+function g-co ()
+{
+        PATTERN=$1
+        COUNT=$(git branch -a | grep $PATTERN  | wc -l)
+
+        if [ "$COUNT" -lt "1" ]; then
+           echo "Cannot find pattern $PATTERN in the list of branches";
+           exit;
+        fi
+
+
+        if [ "$COUNT" -gt "1" ]; then
+           echo "Too many branches match pattern $PATTERN";
+           git branch -a | grep $PATTERN
+           exit;
+        fi
+
+        BRANCH=$(git branch -a | grep $PATTERN )
+        BRANCH=$(echo $BRANCH | sed -E 's/remotes\/origin\///')
+        git checkout $BRANCH          || exit
+        git status
+}
+
+
+
 function git-back ()
 {
     git checkout origin/master "$1"
@@ -116,4 +141,15 @@ function m423()
 {
     for f in *.m4a; do ffmpeg -i "$f" -acodec libmp3lame -ab 64k "${f%}.mp3"; done
     for f in *.m4b; do ffmpeg -i "$f" -acodec libmp3lame -ab 64k "${f%}.mp3"; done
+}
+
+
+function dk-kill-all()
+{
+    docker kill $(docker ps -q)
+}
+
+function dk-remove-all()
+{
+    docker rmi $(docker images -q)
 }
