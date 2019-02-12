@@ -22,7 +22,38 @@ def merge_binary_files(A, B, C):
     fout.close()
 #---
 
+
+def discover_fileset(file_list):
+    fileset = {}
+    total_duration = 0
+    for name in file_list:
+        res = sh.run('mp3info -r v -p "%%S,%%o,%%q,%%r\n" "%s"' % name, silent=True)
+        if res['status'] == 0:
+            elements = re.split(',', res['stdout'][0])
+            fileset[name] = {}
+            fileset[name]['duration'] = int(elements[0])
+            fileset[name]['channels'] = elements[1]
+            fileset[name]['sampling'] = int(elements[2])
+            fileset[name]['bitrate']  = int(elements[3])
+            total_duration += fileset[name]['duration']
+        #---
+    #---
+    fileset['total_duration'] = total_duration
+    if args['debug']:
+        tx.print(fileset)
+    #---
+    return fileset
+#---
+
+
+
+
+
 def merge_mp3(params):
+    flist = discover_fileset(params['files'])
+    xdr = sh.mktempdir('abrec_')
+    print(xdr)
+    '''
     worklist = {}
     worklist['files'] = []
     worklist['files'].extend(params['files'])
@@ -44,6 +75,9 @@ def merge_mp3(params):
     #---
     worklist['total'] = total_duration
 
+
+
+
     merged = 'merged.mp3'
     for k in worklist['info'].keys():
         info = worklist['info'][k]
@@ -55,8 +89,7 @@ def merge_mp3(params):
     #---
     res = sh.run('mp3info -r v -p "%%F, %%S, %%o, %%q, %%r\n" "%s"' % merged, silent=True)
     tx.print(res)
-
-
+    '''
 #---
 
 

@@ -886,7 +886,7 @@ class Shell(object):
                 #---
             #---
         #---
-        return matches
+        return sorted(matches)
     #---
 
     @staticmethod
@@ -999,6 +999,14 @@ class Shell(object):
         #---
         return 'unknown'
     #---
+
+    @staticmethod
+    def mktempdir(_prefix=''):
+        import tempfile
+        dirpath = tempfile.mkdtemp(prefix=_prefix)
+        return dirpath
+    #---
+
 
 
     @staticmethod
