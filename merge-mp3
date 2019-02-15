@@ -4,6 +4,8 @@ import os
 import re
 from swissknife import Shell as sh
 from swissknife import Text as tx
+from swissknife import Log
+from swissknife import Snippets
 
 # global structure for arguments
 args = {}
@@ -23,85 +25,156 @@ def merge_binary_files(A, B, C):
 #---
 
 
-def discover_fileset(file_list):
+def discover_audiobook_directory(dirname):
     fileset = {}
+    fileset['all'] = []
+    fileset['mp3'] = {}
+    fileset['m4a'] = {}
+    fileset['m4b'] = {}
+    fileset['jpg'] = {}
+    fileset['txt'] = {}
+    #---------------
+    fileset['stats'] = {}
+    fileset['stats']['channels'] = {}
+    fileset['stats']['sampling'] = {}
+    fileset['stats']['bitrate'] = {}
+
+    fileset['info'] = {}
+    tree = sh.dir_contains_dirs(dirname)
+    fileset['info']['is_flat'] = ( 0 == len(tree) )
+
+    fileset['all'] = sh.find_files('*.*', dirname)
+
     total_duration = 0
+    total_size = 0
+    file_list = sh.find_files('*.mp3', dirname)
     for name in file_list:
         res = sh.run('mp3info -r v -p "%%S,%%o,%%q,%%r\n" "%s"' % name, silent=True)
         if res['status'] == 0:
             elements = re.split(',', res['stdout'][0])
-            fileset[name] = {}
-            fileset[name]['duration'] = int(elements[0])
-            fileset[name]['channels'] = elements[1]
-            fileset[name]['sampling'] = int(elements[2])
-            fileset[name]['bitrate']  = int(elements[3])
-            total_duration += fileset[name]['duration']
+
+            duration = int(elements[0])
+            channels = elements[1]
+            sampling = int(elements[2])
+            bitrate  = int(elements[3])
+
+            statinfo = os.stat(name)
+
+            fileset['mp3'][name] = {}
+            fileset['mp3'][name]['duration'] = duration
+            fileset['mp3'][name]['channels'] = channels
+            fileset['mp3'][name]['sampling'] = sampling
+            fileset['mp3'][name]['bitrate']  = bitrate
+            fileset['mp3'][name]['size'] = statinfo.st_size
+
+            total_duration += duration
+            total_size += statinfo.st_size
+
+            Snippets.dict_increment(fileset['stats']['channels'], channels, 1)
+            Snippets.dict_increment(fileset['stats']['sampling'], sampling, 1)
+            Snippets.dict_increment(fileset['stats']['bitrate'], bitrate, 1)
+
         #---
     #---
-    fileset['total_duration'] = total_duration
-    if args['debug']:
-        tx.print(fileset)
+
+    m4_file_list = sh.find_files('*.m4?', dirname)
+    for name in m4_file_list:
+        fileset['m4'][name] = {}
+    #---
+
+    txt_file_list = sh.find_files('*.txt', dirname)
+    for name in txt_file_list:
+        fileset['txt'][name] = {}
+    #---
+
+    jpg_file_list = sh.find_files('*.jpg', dirname)
+    jpg_file_list.extend(sh.find_files('*.jpeg', dirname))
+    jpg_file_list.extend(sh.find_files('*.JPG', dirname))
+    jpg_file_list.extend(sh.find_files('*.JPEG', dirname))
+    for name in jpg_file_list:
+        fileset['jpg'][name] = {}
+        statinfo = os.stat(name)
+        fileset['jpg'][name]['size'] = statinfo.st_size
+    #---
+
+    fileset['info']['total_duration'] = total_duration
+    fileset['info']['total_files'] = len(fileset['mp3'])
+    fileset['info']['total_size'] = total_size
+
+    fileset['info']['channels_variations'] = len(fileset['stats']['channels'].keys())
+    fileset['info']['sampling_variations'] = len(fileset['stats']['sampling'].keys())
+    fileset['info']['bitrate_variations'] = len(fileset['stats']['bitrate'].keys())
+
+    fileset['info']['total_variations'] =   fileset['info']['channels_variations'] + fileset['info']['sampling_variations'] + fileset['info']['bitrate_variations']
+    fileset['info']['has_vbr'] =  'Variable' in fileset['stats']['bitrate'].keys()
+    fileset['info']['is_64K'] =   (fileset['info']['bitrate_variations'] == 1) and (64 in fileset['stats']['bitrate'].keys())
+    fileset['info']['has_images'] = (len(fileset['jpg']) > 0)
+
+    #if args['debug']:
+    #    tx.print(fileset)
     #---
     return fileset
 #---
 
 
-
-
-
-def merge_mp3(params):
-    flist = discover_fileset(params['files'])
-    xdr = sh.mktempdir('abrec_')
-    print(xdr)
-    '''
-    worklist = {}
-    worklist['files'] = []
-    worklist['files'].extend(params['files'])
-    worklist['info'] = {}
-    total_duration = 0
-    for name in params['files']:
-        res = sh.run('mp3info -r v -p "%%F, %%S, %%o, %%q, %%r\n" "%s"' % name, silent=True)
-        info = re.split(', ', res['stdout'][0])
-        key = info[0]
-        currec = {}
-        cur_duration = int(info[1])
-        currec['duration'] = cur_duration
-        total_duration += cur_duration
-        currec['channel'] = info[2]
-        currec['sampling'] = int(info[3])
-        currec['rate'] = info[4]
-
-        worklist['info'][key] = currec
+def recode_m4(job):
+    if len(job['m4']) == 0:
+        return job
     #---
-    worklist['total'] = total_duration
+    tdir = sh.makedir('ab_', True)
+    ffmpeg_params = ' -acodec libmp3lame -ar 22050 '
+    idx = 1
+    for name in job['m4']:
+        newname = tdir + '/' + "%04d.mp3" % idx
+        cmd = 'ffmpeg -i ' + tx.enquote(name) + ffmpeg_params + tx.enquote(newname)
+        sh.run(cmd)
 
 
 
 
-    merged = 'merged.mp3'
-    for k in worklist['info'].keys():
-        info = worklist['info'][k]
-        if (info['rate'] == '64'):
-            merge_binary_files(merged, k, merged)
+
+
+
+
+
+def process_audiobook_directory(params):
+    log = Log(params['verbose'], params['debug'])
+    for abdir in params['dirs']:
+        xdr = discover_audiobook_directory(abdir)
+        log.print('Processing directory %s' % abdir)
+        tx.print(xdr)
+        if not xdr['info']['is_flat']:
+            log.print('Flattening the directory')
+            sh.flat_folder(abdir)
+            xdr = discover_audiobook_directory(abdir)
+            if not xdr['info']['is_flat']:
+                log.print('Flattening was successful')
+            #---
         #---
-
-        tx.print(info)
+        log.print('Normalizing numeration')
+        sh.normalize_names('*.*', abdir)
+        xdr = discover_audiobook_directory(abdir)
     #---
-    res = sh.run('mp3info -r v -p "%%F, %%S, %%o, %%q, %%r\n" "%s"' % merged, silent=True)
-    tx.print(res)
-    '''
+    if params['debug']:
+        log.dump('merge-mp3.log')
+    #---
 #---
 
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
+    parser.add_argument("--verbose",action="store_true", default=False, help="Be verbose")
     parser.add_argument("--debug",  action="store_true", default=False)
     parser.add_argument("--dryrun", action="store_true", default=False)
-    parser.add_argument("files", action="store", default=".", nargs='*')
+    parser.add_argument("dirs", action="store", nargs='*')
     args = vars(parser.parse_args())
     if args['debug']:
         tx.print(args, '    ', 'Arguments')
     #---
-    merge_mp3(args)
-#-----------------------------------------------
+    if args['dirs']:
+        process_audiobook_directory(args)
+    else:
+        parser.parse_args(['--help'])
+    #---
+#---

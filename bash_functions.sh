@@ -40,18 +40,20 @@ function git-acp ()
 function git-new ()
 {
         PATTERN=$1
+        echo "Cloning $PATTERN from $DEFREPO"
+
         COUNT=$(git ls-remote $DEFREPO | grep $PATTERN  | wc -l)
 
         if [ "$COUNT" -lt "1" ]; then
            echo "Cannot find pattern $PATTERN in the list of branches";
-           exit;
+           return
         fi
 
 
         if [ "$COUNT" -gt "1" ]; then
            echo "Too many branches match pattern $PATTERN";
            git ls-remote $DEFREPO | grep $PATTERN
-           exit;
+           return
         fi
 
         BRANCH=$(git ls-remote $DEFREPO | grep $PATTERN  | awk '{print $2}')

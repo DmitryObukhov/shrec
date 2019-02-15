@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 """
     Universal code module
 """
@@ -14,18 +16,77 @@ from time import time
 import pprint
 import inspect
 import platform
+import sys
 
 
-__all__ = ['Debug', 'Strings', 'Text', 'Shell']
+__all__ = ['Log', 'Text', 'Shell', 'Snippets']
 __version__ = '0.0.1'
 
-class Debug(object):
-    """ Debug functions """
-    @staticmethod
-    def lineno():
-        """Returns the current line number in our program."""
-        return inspect.currentframe().f_back.f_lineno
+class Log(object):
+    """ Log and Debug functions """
+    def __init__(self, _verbose=False, _debug=False, _logname='', _treshhold=0):
+        """ Constructor """
+        self.verbose   = _verbose
+        self.debug     = _debug
+        self.logname   = _logname
+        self.treshhold = _treshhold
+        self.store   = []
+        self.print("Created log object", -666)
     #---
+
+    @staticmethod
+    def debug_info(depth=1):
+        """Returns the debug info tuple (file, lineNum, funcName)."""
+        frame = sys._getframe(depth)
+        funName = frame.f_code.co_name
+        line_number = frame.f_lineno
+        filename = frame.f_code.co_filename
+        return (filename, line_number, funName)
+    #---
+
+    def print(self, msg, level=0):
+        """ """
+        log_record = {}
+        log_record['time'] = str(datetime.now())
+        log_record['level'] = level
+        (scriptname, line_number, funName) = self.debug_info(2)
+        log_record['script'] = scriptname
+        log_record['line'] = line_number
+        log_record['function'] = funName
+        log_record['depth'] = len(inspect.stack())
+        log_record['message'] = msg
+        #------------------------------------------------------------------
+        self.store.append(log_record)
+        if self.debug:
+            Text.print(log_record)
+        #---
+
+        if level>=self.treshhold:
+            if self.verbose:
+                print(msg)
+            #---
+            if self.logname:
+                with open(self.logname, "a") as log_file:
+                    log_file.write("%s\n" % msg)
+                #---
+            #---
+        #---
+    #---
+
+    def dump(self, logname=''):
+        store_str = json.dumps(self.store, ensure_ascii=True, indent=4)
+        if self.verbose:
+            print(store_str)
+        #---
+        if logname:
+            with open(logname, "w") as log_file:
+                log_file.write("%s\n" % store_str)
+            #---
+        #---
+    #---
+
+
+
 #-----------
 
 
@@ -44,117 +105,6 @@ class Numbers(object):
         return str(re.match(num_re, x)) != 'None'
     #---
 #---
-
-
-
-class Strings(object):
-    """  Strings manipulation class """
-    @staticmethod
-    def enquote(string_value, quote_mark=r'"'):
-        """ 'abc' --> '"abc"' """
-        return "%s%s%s" % (quote_mark, string_value, quote_mark)
-    #--- end of enquote
-
-    @staticmethod
-    def lorem(maxlen=-1):
-        """  generates random text to mockup web layout  """
-        lorem = """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-                exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
-                irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-                nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa
-                qui officia deserunt mollit anim id est laborum. Sint occaecat cupidatat non
-                proident, sunt in culpa qui officia deserunt mollit anim id est laborum."""
-        lorem = re.sub(r'\s\s+', ' ', lorem)
-        if maxlen > 0:
-            lorem = lorem[:maxlen]
-        #---
-        return lorem
-    #---
-
-    @staticmethod
-    def timestamp(format_str='%Y_%m_%d_%H%M%S%f'):
-        """  --> '2018_01_01_1234569999' """
-        return datetime.now().strftime(format_str)
-    #--- end of timestamp
-
-
-    @staticmethod
-    def randomstr(length, charset=''):
-        """  --> 'lsdahfl897klj' """
-        import string
-        import random
-        if charset == '':
-            charset = string.ascii_uppercase + string.digits
-        return ''.join(random.choice(charset) for _ in range(length))
-    #--- end of random_string
-
-
-    @staticmethod
-    def is_url(url):
-        """ Returns True is string is valid URL """
-        try:
-            from urllib.parse import urlparse
-        except ImportError:
-            from urlparse import urlparse
-        #---
-
-        try:
-            res = urlparse(url)
-            return res.scheme != ""
-        except BaseException:
-            return False
-        #---
-        return False
-    #---
-
-
-    @staticmethod
-    def is_email(strval):
-        """ Returns True is string is valid email """
-        regexp = re.compile(r'[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}', re.IGNORECASE)
-        email = regexp.findall(strval)
-        if email:
-            return True
-        #---
-        return False
-    #---
-
-
-    @staticmethod
-    def extract_email(strval):
-        """ Returns True is string is valid email """
-        regexp = re.compile(r'[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}', re.IGNORECASE)
-        email = regexp.findall(strval)
-        if email:
-            return email[0]
-        #---
-        return ''
-    #---
-
-    @staticmethod
-    def unify_length(input_str, maxlen=-1, minlen=-1, spacer=' '):
-        """  Cut string or add spacers to keep length for all lines """
-        # todo: unittest
-        ret_str = input_str
-        cur_len = len(ret_str)
-        # if maxLen defined, keep the left portion
-        if (maxlen > 0) and (cur_len > maxlen):
-            ret_str = ret_str[:maxlen]
-        #---
-
-        # if min len is defined, space trail string
-        cur_len = len(ret_str)
-        if (minlen > 0) and (cur_len < minlen):
-            ret_str = ret_str + spacer * (minlen - cur_len)
-        #---
-        return ret_str
-    #---
-
-
-
-
-#--- end of class Strings
 
 
 
@@ -581,7 +531,7 @@ class Text(object):
         # if the header is defined, add header after indent
         if header != '':
             cur_line = "%s%s" % (offset, header)
-            cur_line = Strings.unify_length(cur_line, maxlen, minlen)
+            cur_line = Text.unify_length(cur_line, maxlen, minlen)
             ret_val.append(cur_line)
         #---
 
@@ -594,14 +544,14 @@ class Text(object):
                 line_number += 1
             # prepare line in format [indent][lineNumber][actualString]
             cur_line = "%s%s%s" % (offset, line_number_str, txt[line_idx])
-            cur_line = Strings.unify_length(cur_line, maxlen, minlen)
+            cur_line = Text.unify_length(cur_line, maxlen, minlen)
             # add to the output
             ret_val.append(cur_line)
         #-- pylint: disable=consider-using-enumerate
 
         if footer != '':
             cur_line = "%s%s" % (offset, footer)
-            cur_line = Strings.unify_length(cur_line, maxlen, minlen)
+            cur_line = Text.unify_length(cur_line, maxlen, minlen)
             ret_val.append(cur_line)
         #---
 
@@ -649,6 +599,107 @@ class Text(object):
         return retval
     #---
 
+    @staticmethod
+    def enquote(string_value, quote_mark=r'"'):
+        """ 'abc' --> '"abc"' """
+        return "%s%s%s" % (quote_mark, string_value, quote_mark)
+    #--- end of enquote
+
+    @staticmethod
+    def lorem(maxlen=-1):
+        """  generates random text to mockup web layout  """
+        lorem = """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+                exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
+                irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+                nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa
+                qui officia deserunt mollit anim id est laborum. Sint occaecat cupidatat non
+                proident, sunt in culpa qui officia deserunt mollit anim id est laborum."""
+        lorem = re.sub(r'\s\s+', ' ', lorem)
+        if maxlen > 0:
+            lorem = lorem[:maxlen]
+        #---
+        return lorem
+    #---
+
+    @staticmethod
+    def timestamp(format_str='%Y_%m_%d_%H%M%S%f'):
+        """  --> '2018_01_01_1234569999' """
+        return datetime.now().strftime(format_str)
+    #--- end of timestamp
+
+
+    @staticmethod
+    def randomstr(length, charset=''):
+        """  --> 'lsdahfl897klj' """
+        import string
+        import random
+        if charset == '':
+            charset = string.ascii_uppercase + string.digits
+        return ''.join(random.choice(charset) for _ in range(length))
+    #--- end of random_string
+
+
+    @staticmethod
+    def is_url(url):
+        """ Returns True is string is valid URL """
+        try:
+            from urllib.parse import urlparse
+        except ImportError:
+            from urlparse import urlparse
+        #---
+
+        try:
+            res = urlparse(url)
+            return res.scheme != ""
+        except BaseException:
+            return False
+        #---
+        return False
+    #---
+
+
+    @staticmethod
+    def is_email(strval):
+        """ Returns True is string is valid email """
+        regexp = re.compile(r'[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}', re.IGNORECASE)
+        email = regexp.findall(strval)
+        if email:
+            return True
+        #---
+        return False
+    #---
+
+
+    @staticmethod
+    def extract_email(strval):
+        """ Returns True is string is valid email """
+        regexp = re.compile(r'[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}', re.IGNORECASE)
+        email = regexp.findall(strval)
+        if email:
+            return email[0]
+        #---
+        return ''
+    #---
+
+    @staticmethod
+    def unify_length(input_str, maxlen=-1, minlen=-1, spacer=' '):
+        """  Cut string or add spacers to keep length for all lines """
+        # todo: unittest
+        ret_str = input_str
+        cur_len = len(ret_str)
+        # if maxLen defined, keep the left portion
+        if (maxlen > 0) and (cur_len > maxlen):
+            ret_str = ret_str[:maxlen]
+        #---
+
+        # if min len is defined, space trail string
+        cur_len = len(ret_str)
+        if (minlen > 0) and (cur_len < minlen):
+            ret_str = ret_str + spacer * (minlen - cur_len)
+        #---
+        return ret_str
+    #---
 
 #--- end of class Text
 
@@ -859,12 +910,23 @@ class Shell(object):
     #---
 
     @staticmethod
-    def find_files(mask='*.*', work_dir='', recursive=True):
-        """ Find files mathing a mask """
+    def find_files(mask='*.*', work_dir='', recursive=True, short=False):
+        """ Find files mathing a mask. Masj can be a string or list of strings """
         import fnmatch
+
+        if type(mask) is list:
+            flist = []
+            for m in mask:
+                mlist = Shell.find_files(m, work_dir, recursive)
+                flist.extend(mlist)
+            #---
+            return sorted(flist)
+        #---
+
         if work_dir == '':
             work_dir = os.getcwd()
         #---
+
         matches = []
         if recursive:
             # disable warning for unused variable dirnames
@@ -872,8 +934,12 @@ class Shell(object):
             for root, dirnames, filenames in os.walk(work_dir):
                 for filename in fnmatch.filter(filenames, mask):
                     fname = os.path.join(root, filename)
-                    fname = os.path.abspath(fname)
-                    matches.append(fname)
+                    if short:
+                        matches.append(fname)
+                    else:
+                        fname = os.path.abspath(fname)
+                        matches.append(fname)
+                    #
                 #---
             #---
             # pylint: enable=W0612
@@ -890,6 +956,58 @@ class Shell(object):
     #---
 
     @staticmethod
+    def flat_folder(workDir, separator='_'):
+        if (not os.path.exists(workDir)):
+            sys.stderr.write('ERROR: %s doesn`t exists\n' % workDir)
+            return -1
+        #---
+
+        if (not os.path.isdir(workDir)):
+            sys.stderr.write('ERROR: %s is not a directory\n' % workDir)
+            return -1
+        #---
+
+        curDir = os.getcwd()
+        os.chdir(workDir)
+
+        pathRemover = re.compile('/')
+        fList = Shell.find_files("*.*", '.', short=True)
+
+        for x in range(0,len(fList)):
+            newName1 = str(fList[x][2:])
+            (newName2,n) = pathRemover.subn(separator, newName1)
+            os.renames(fList[x], newName2)
+        #---
+
+        os.chdir(curDir)
+        return len(fList)
+    #---
+
+
+
+    @staticmethod
+    def merge(fileList, mergeFileName):
+        fout = file(mergeFileName,'wb')
+        for n in fileList:
+            fin  = file(n,'rb')
+            while True:
+                data = fin.read(65536)
+                if not data:
+                    break
+                #---
+                fout.write(data)
+            #---
+            fin.close()
+        #---
+        fout.flush()
+        fout.close()
+        return 0
+    #------------------------------------------------
+
+
+
+
+    @staticmethod
     def normalize_file_name(name):
         newname = name
         # append underscores as placeholders
@@ -901,6 +1019,31 @@ class Shell(object):
         newname = re.sub(r'(__)(\d\d)(\D)', r'00\2\3', newname)
         newname = re.sub(r'(_)(\d\d\d)(\D)', r'0\2\3', newname)
         return newname
+    #---
+
+    @staticmethod
+    def dir_contains_dirs(name):
+        retval = []
+        list_dir = os.listdir(name)
+        Text.print(list_dir)
+        for f in list_dir:
+            if os.path.isdir(name + '/' + f):
+                retval.append(f)
+            #---
+        #---
+        return retval
+    #---
+
+    @staticmethod
+    def dir_contains_files(name):
+        retval = []
+        list_dir = os.listdir(name)
+        for f in list_dir:
+            if os.path.isfile(os.path.join('.', f)):
+                retval.append(f)
+            #---
+        #---
+        return retval
     #---
 
 
@@ -940,12 +1083,19 @@ class Shell(object):
     #---
 
     @staticmethod
-    def makedir(dirname):
+    def makedir(dirname, temp=False):
         """ Make directory with error handling
         """
         import errno
+        import tempfile
+
+        if temp:
+            dirpath = tempfile.mkdtemp(prefix=dirname)
+            return dirpath
+        #---
+
         if os.path.isdir(dirname):
-            return 0
+            return dirname
         #---
         if os.path.isfile(dirname):
             raise OSError("a file with the same name as the desired " \
@@ -958,7 +1108,7 @@ class Shell(object):
                 raise
             #---
         #---
-        return 0
+        return dirname
     #---
 
     @staticmethod
@@ -1000,12 +1150,6 @@ class Shell(object):
         return 'unknown'
     #---
 
-    @staticmethod
-    def mktempdir(_prefix=''):
-        import tempfile
-        dirpath = tempfile.mkdtemp(prefix=_prefix)
-        return dirpath
-    #---
 
 
 
@@ -1071,10 +1215,35 @@ class Shell(object):
         # Programming shortcut to toggle the value of found: 1 => 0, 0 => 1.
         return None
     #---
-
-
-
 #--- end of class Shell
+
+
+class Snippets(object):
+    """ Class to hold various snippets """
+    def __init__(self):
+        """ Constructor """
+        pass
+    #---
+
+    @staticmethod
+    def dict_increment(dct, field, val=1):
+        """ Increment field in dictionary """
+        if not field in dct.keys():
+            dct[field] = 0
+        #---
+        dct[field] += val
+    #---
+
+    @staticmethod
+    def dict_merge(dctA, dctB):
+        """ merge two dicts """
+        dctC = {**dctA, **dctB}
+        return dctC
+    #---
+
+#--- end of Utils
+
+
 
 
 class NumberBag(object):
