@@ -9,7 +9,7 @@ from swissknife import Snippets
 
 # global structure for arguments
 args = {}
-
+log = Log(True)
 
 def merge_binary_files(A, B, C):
     import shutil
@@ -29,8 +29,7 @@ def discover_audiobook_directory(dirname):
     fileset = {}
     fileset['all'] = []
     fileset['mp3'] = {}
-    fileset['m4a'] = {}
-    fileset['m4b'] = {}
+    fileset['m4'] = {}
     fileset['jpg'] = {}
     fileset['txt'] = {}
     #---------------
@@ -51,12 +50,17 @@ def discover_audiobook_directory(dirname):
     for name in file_list:
         res = sh.run('mp3info -r v -p "%%S,%%o,%%q,%%r\n" "%s"' % name, silent=True)
         if res['status'] == 0:
+            tx.print(res,'','--- '+name)
             elements = re.split(',', res['stdout'][0])
 
             duration = int(elements[0])
             channels = elements[1]
             sampling = int(elements[2])
-            bitrate  = int(elements[3])
+            if (elements[3]=='Variable'):
+                bitrate  = 777
+            else:
+                bitrate  = int(elements[3])
+            #---
 
             statinfo = os.stat(name)
 
@@ -97,6 +101,7 @@ def discover_audiobook_directory(dirname):
         fileset['jpg'][name]['size'] = statinfo.st_size
     #---
 
+    fileset['info']['base_dir'] = dirname
     fileset['info']['total_duration'] = total_duration
     fileset['info']['total_files'] = len(fileset['mp3'])
     fileset['info']['total_size'] = total_size
@@ -131,7 +136,26 @@ def recode_m4(job):
 
 
 
-
+def merge_mp3_files(xdr):
+    merge_name = tx.randomstr(8)
+    phase_one = merge_name + '_copy' + '.mp3'
+    phase_two = merge_name + '_recoded' + '.mp3'
+    sh.merge(xdr['mp3'].keys(), phase_one)
+    statinfo = os.stat(phase_one)
+    log.print('Created file %s with size %d bytes' % (phase_one, statinfo.st_size))
+    log.print('Recoding')
+    cmd = "ffmpeg -i \"%s\" -acodec libmp3lame -ar 22050 \"%s\"" % (phase_one, phase_two)
+    res = sh.run(cmd)
+    if res['status'] != 0:
+        return res['status']
+    #---
+    res = sh.run('mp3info -p "%%S\n" "%s"' % phase_two, silent=True)
+    if res['status'] != 0:
+        return res['status']
+    #---
+    duration = int(res['stdout'][0])
+    print(duration)
+    exit(0)
 
 
 
@@ -142,7 +166,6 @@ def process_audiobook_directory(params):
     for abdir in params['dirs']:
         xdr = discover_audiobook_directory(abdir)
         log.print('Processing directory %s' % abdir)
-        tx.print(xdr)
         if not xdr['info']['is_flat']:
             log.print('Flattening the directory')
             sh.flat_folder(abdir)
@@ -153,7 +176,23 @@ def process_audiobook_directory(params):
         #---
         log.print('Normalizing numeration')
         sh.normalize_names('*.*', abdir)
+        sh.transliterate_folder(abdir)
         xdr = discover_audiobook_directory(abdir)
+        tx.print(xdr)
+        # if xdr['m4']:
+        #    process m4a/m4b FileS
+        #       cmd = "ffmpeg -i \"%s\" -acodec libmp3lame -ar 22050 \"%s\"" % (old,new)
+
+        # if xdr['jpg']:
+        #    process m4a/m4b FileS
+        #       cmd = "ffmpeg -i \"%s\" -acodec libmp3lame -ar 22050 \"%s\"" % (old,new)
+
+
+        if len(xdr['mp3']) > 1:
+            merge_mp3_files(xdr)
+            exit(0)
+        #---
+
     #---
     if params['debug']:
         log.dump('merge-mp3.log')

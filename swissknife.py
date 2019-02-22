@@ -877,7 +877,7 @@ class Shell(object):
     #---
 
     @staticmethod
-    def fname_split(file_name):
+    def fname_split(file_name, ret_tuple=False):
         """ Split file name into path, name, and extension """
         r_path = os.path.dirname(file_name)
         (r_name, r_ext) = os.path.splitext(os.path.basename(file_name))
@@ -885,6 +885,9 @@ class Shell(object):
         ret_val['path'] = r_path
         ret_val['name'] = r_name
         ret_val['ext'] = r_ext[1:]
+        if ret_tuple:
+            return (r_path, r_name, r_ext)
+        #---
         return ret_val
     #---
 
@@ -983,13 +986,43 @@ class Shell(object):
         return len(fList)
     #---
 
+    @staticmethod
+    def transliterate_folder(workDir):
+        from unidecode import unidecode
+
+        if (not os.path.exists(workDir)):
+            sys.stderr.write('ERROR: %s doesn`t exists\n' % workDir)
+            return -1
+        #---
+
+        if (not os.path.isdir(workDir)):
+            sys.stderr.write('ERROR: %s is not a directory\n' % workDir)
+            return -1
+        #---
+
+        curDir = os.getcwd()
+        os.chdir(workDir)
+
+        fList = Shell.find_files("*.*", '.', short=True)
+
+        for x in fList:
+            newName  = unidecode(x)
+            if (x != newName):
+                os.renames(x, newName)
+            #---
+        #---
+
+        os.chdir(curDir)
+        return len(fList)
+
+    #---
 
 
     @staticmethod
     def merge(fileList, mergeFileName):
-        fout = file(mergeFileName,'wb')
+        fout = open(mergeFileName,'wb')
         for n in fileList:
-            fin  = file(n,'rb')
+            fin  = open(n,'rb')
             while True:
                 data = fin.read(65536)
                 if not data:
@@ -1025,7 +1058,7 @@ class Shell(object):
     def dir_contains_dirs(name):
         retval = []
         list_dir = os.listdir(name)
-        Text.print(list_dir)
+        #Text.print(list_dir)
         for f in list_dir:
             if os.path.isdir(name + '/' + f):
                 retval.append(f)
@@ -1060,6 +1093,16 @@ class Shell(object):
         #---
     #---
 
+    @staticmethod
+    def detrack_folder(mask, workdir=''):
+        flist = Shell.find_files(mask, workdir)
+        for name in flist:
+            newname = re.sub('^[\d\.\s]+','',name)
+            if name != newname:
+                os.rename(name,newname)
+            #---
+        #---
+    #---
 
     @staticmethod
     def remove(dir_or_file_name):
@@ -1296,5 +1339,5 @@ class NumberBag(object):
 #---
 
 if __name__ == "__main__":
-    print('---')
+    pass
 #---
