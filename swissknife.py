@@ -203,7 +203,6 @@ class Text(object):
             input_file.close()
             if clean:
                 ret_val = Text.rstrip(ret_val)
-                ret_val = Text.remove_empty_lines(ret_val)
             #---
         return ret_val
     #---------------------

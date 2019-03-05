@@ -15,6 +15,9 @@ PATH=$PATH:~/shrec
 
 function reloadbash()
 {
+    cd ~/shrec
+    git pull
+    cd -
     source ~/.bashrc
 }
 
@@ -103,18 +106,12 @@ function git-back ()
 
 function git-mm ()
 {
-    BRANCH=$(git status | grep 'On branch' | awk '{print $3}')
-    echo $BRANCH
-    if [ "$BRANCH" -eq "master" ]; then
-        git pull;
-        exit;
-    fi
-    git checkout master     || exit
-    git pull                || exit
-    git checkout $BRANCH    || exit
+    git checkout master     || return
+    git pull                || return
+    git checkout -          || return
     git pull
-    git merge master -m \"$1\"
-    git push
+    git merge master -m \"$1\" || return
+    #git push
 }
 
 
@@ -154,4 +151,17 @@ function dk-kill-all()
 function dk-remove-all()
 {
     docker rmi $(docker images -q)
+}
+
+function git-catch-up()
+{
+    git checkout master
+    git pull
+    git checkout -
+    git pull
+    git merge master -m "Merging latest changes in master into branch"
+    git add --all
+    git commit -m "Merging latest changes in master into branch"
+    git push
+    git status
 }
