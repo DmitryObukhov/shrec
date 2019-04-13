@@ -4,7 +4,9 @@
 #
 # MY_EMAIL=xxx
 # MY_ID=xxx
-# DOMAIN_PASSWORD=xxx
+# DOMAIN_PASSWORD=xxxxxxx
+# USER_PASSWORD=xxxxxx
+# ROOT_PASSWORD=xxxxxx
 # DEFREPO=xxx
 # BITBUCKET_USER=xxx
 # BITBUCKET_PASSWORD=xxx
@@ -12,114 +14,10 @@
 
 PATH=$PATH:~/shrec
 
-
-function reloadbash()
-{
-    cd ~/shrec
-    git pull
-    cd -
-    source ~/.bashrc
-}
-
-
-function new-shrec()
-{
-    new_shrec_name=~/shrec/$1
-    cp ~/shrec/base_script.py $new_shrec_name
-    chmod 777 $new_shrec_name
-}
-
-
-
-
-function git-acp ()
-{
-    git add --all
-    git commit -m \""$@"\"
-    git push
-}
-
-
-function git-new ()
-{
-        PATTERN=$1
-        echo "Cloning $PATTERN from $DEFREPO"
-
-        COUNT=$(git ls-remote $DEFREPO | grep $PATTERN  | wc -l)
-
-        if [ "$COUNT" -lt "1" ]; then
-           echo "Cannot find pattern $PATTERN in the list of branches";
-           return
-        fi
-
-
-        if [ "$COUNT" -gt "1" ]; then
-           echo "Too many branches match pattern $PATTERN";
-           git ls-remote $DEFREPO | grep $PATTERN
-           return
-        fi
-
-        BRANCH=$(git ls-remote $DEFREPO | grep $PATTERN  | awk '{print $2}')
-        BRANCH=${BRANCH#"refs/heads/"}
-
-        mkdir $PATTERN                || exit
-        git clone $DEFREPO $PATTERN   || exit
-        cd $PATTERN                   || exit
-        git checkout $BRANCH          || exit
-        git log -n 1
-        git status
-}
-
-function g-co ()
-{
-        PATTERN=$1
-        COUNT=$(git branch -a | grep $PATTERN  | wc -l)
-
-        if [ "$COUNT" -lt "1" ]; then
-           echo "Cannot find pattern $PATTERN in the list of branches";
-           exit;
-        fi
-
-
-        if [ "$COUNT" -gt "1" ]; then
-           echo "Too many branches match pattern $PATTERN";
-           git branch -a | grep $PATTERN
-           exit;
-        fi
-
-        BRANCH=$(git branch -a | grep $PATTERN )
-        BRANCH=$(echo $BRANCH | sed -E 's/remotes\/origin\///')
-        git checkout $BRANCH          || exit
-        git status
-}
-
-
-
-function git-back ()
-{
-    git checkout origin/master "$1"
-    git commit -m \"Revert $1 to the state of master branch\"
-    git push
-}
-
-
-
-function git-mm ()
-{
-    git checkout master     || return
-    git pull                || return
-    git checkout -          || return
-    git pull
-    git merge master -m \"$1\" || return
-    #git push
-}
-
-
-function agi ()
-{
-    apt-get install -y -m $@
-}
-
+source ~/shrec/bash_git.sh
+source ~/shrec/bash_docker.sh
+source ~/shrec/bash_apt.sh
+source ~/shrec/bash_shrec.sh
 
 # cat user.json | grep default_repo | awk '{print $2}' | tr -d '"'
 
@@ -143,25 +41,3 @@ function m423()
 }
 
 
-function dk-kill-all()
-{
-    docker kill $(docker ps -q)
-}
-
-function dk-remove-all()
-{
-    docker rmi $(docker images -q)
-}
-
-function git-catch-up()
-{
-    git checkout master
-    git pull
-    git checkout -
-    git pull
-    git merge master -m "Merging latest changes in master into branch"
-    git add --all
-    git commit -m "Merging latest changes in master into branch"
-    git push
-    git status
-}
