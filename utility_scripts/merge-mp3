@@ -2,10 +2,10 @@
 
 import os
 import re
-from swissknife import Shell as sh
-from swissknife import Text as tx
-from swissknife import Log
-from swissknife import Snippets
+from shrec import Shell as sh
+from shrec import Text as tx
+from shrec import Log
+from shrec import Snippets
 
 # global structure for arguments
 args = {}

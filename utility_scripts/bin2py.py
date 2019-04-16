@@ -6,8 +6,6 @@ import zlib
 import hashlib
 import base64
 
-from shellwrapper import ShellWrapper
-
 def fold(long_str, width=80):
     """  longStr --> [str1,str2,str3] """
     ret_val = []

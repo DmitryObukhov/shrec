@@ -5,8 +5,8 @@
 """
 import os
 import re
-from swissknife import Text  as tx
-from swissknife import Shell as sh
+from shrec import Text  as tx
+from shrec import Shell as sh
 
 def translit_folder(args):
     for dir in args['dir']:
@@ -19,7 +19,6 @@ def norm_folder(args):
         sh.normalize_names(args['mask'],dir)
     #---
 #---
-
 
 def flat_folder(args):
     for dir in args['dir']:

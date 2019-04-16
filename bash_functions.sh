@@ -14,10 +14,11 @@
 
 PATH=$PATH:~/shrec
 
-source ~/shrec/bash_git.sh
-source ~/shrec/bash_docker.sh
-source ~/shrec/bash_apt.sh
-source ~/shrec/bash_shrec.sh
+source ~/shrec/bash_functions/git.sh
+source ~/shrec/bash_functions/docker.sh
+source ~/shrec/bash_functions/apt.sh
+source ~/shrec/bash_functions/shrec.sh
+source ~/shrec/bash_functions/multimedia.sh
 
 # cat user.json | grep default_repo | awk '{print $2}' | tr -d '"'
 
@@ -32,12 +33,4 @@ function submerge()
     git checkout -b $BRANCH
     git push --set-upstream origin $BRANCH
 }
-
-
-function m423()
-{
-    for f in *.m4a; do ffmpeg -i "$f" -acodec libmp3lame -ab 64k "${f%}.mp3"; done
-    for f in *.m4b; do ffmpeg -i "$f" -acodec libmp3lame -ab 64k "${f%}.mp3"; done
-}
-
 
