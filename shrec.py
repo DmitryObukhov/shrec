@@ -17,6 +17,7 @@ import pprint
 import inspect
 import platform
 import sys
+import binascii
 
 
 __all__ = ['Log', 'Text', 'Shell', 'Snippets']
@@ -419,338 +420,6 @@ class Text(object):
         #---
         return filtered
     #---------------------
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-    def run_as_user(self, command, work_dir, user=''):
-        """ Run shall command as specific user """
-        self._log_func(True)
-        self.log('command %s' % command)
-        self.log('user    %s' % user)
-        self.log('dir     %s' % work_dir)
-        if user:
-            # Run it as different user
-            sudo_cmd = "sudo -H -u %s bash -c " % user
-            cd_cmd = ''
-            if work_dir:
-                cd_cmd = 'cd %s; ' % work_dir
-            #---
-            command = sudo_cmd + "'" + cd_cmd + command + "'"
-        #---
-        self._log_func(False)
-        return self.run(command)
-    #---
-
-            #---
-            # after
-        else:
-            output.extend(txt)
-            output.extend(fragment)
-        #---
-        return output
-    #---------------------
-
 
     @staticmethod
     def indent(txt, lead=' ' * 4):
@@ -1005,6 +674,57 @@ class Text(object):
         #---
         return ret_str
     #---
+
+    @staticmethod
+    def bin2hexdump(buf, linelen=32, middlecol='', fourdivider='', bytedivider='', address=False):
+        ret = []
+        if linelen<0:
+            linelen = len(buf)
+        #---
+
+        if address:
+            curstr = '%08X: ' % 0
+        else:
+            curstr = ''
+        #---
+        for i in range(len(buf)):
+            if (i > 0):
+                if (i % linelen == 0):
+                    ret.append(curstr.rstrip())
+                    if address:
+                        curstr = '%08X: ' % i
+                    else:
+                        curstr = ''
+                    #---
+                else:
+                    if ((i % (linelen/2)) == 0):
+                        curstr += middlecol
+                    elif (i % 4) == 0:
+                        curstr += fourdivider
+                    #---
+                #---
+            #---
+            curstr = curstr + '%02X%s' % (buf[i], bytedivider)
+        #---
+        ret.append(curstr.rstrip())
+        return ret
+    #---
+
+    @staticmethod
+    def hexdump2bin(dump):
+        dump_str = ''
+        for line in dump:
+            line = line.strip()
+            line = re.sub('^[0-9a-fA-F]+\:\s+', '', line) # Remove header address
+            line = re.sub('[^0-9a-fA-F\s]+', ' ', line)   # Remove non-hexdigit characters
+            line = re.sub('\s+', '', line)   # Remove non-hexdigit characters
+            dump_str += line
+        #---
+        s=binascii.unhexlify(dump_str)
+        ret=[ord(x) for x in s]
+        return ret
+    #---
+
 
 #--- end of class Text
 
