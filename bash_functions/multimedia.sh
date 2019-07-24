@@ -64,3 +64,13 @@ function yt-dlv()
     youtube-dl --get-duration $1
     youtube-dl --recode-video avi $1
 }
+
+function yta()
+{
+    youtube-dl -x --audio-format mp3 --audio-quality 1 --exec 'mv {} ~/pCloudDrive/__NEW/_YTA'  $@ &
+}
+
+function ytv()
+{
+    youtube-dl --exec 'mv {} ~/pCloudDrive/__NEW/_YTV'  $@ &
+}
