@@ -74,3 +74,15 @@ function ytv()
 {
     youtube-dl --exec 'mv {} ~/pCloudDrive/__NEW/_YTV'  $@ &
 }
+
+function nonums()
+{
+     rename -e 's/^[\d\.\s\-]+//' $1
+}
+
+function add_prefix()
+{
+     prefix=$1
+     mask=$2
+     rename -nono -e 's/^/$prefix/' $mask
+}
