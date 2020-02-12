@@ -52,7 +52,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 __module__ = "shrec"
-__version__ = "0.0.5"
+__version__ = "0.1.0"
 __author__ = "Dmitry Obukhov"
 __contact__ = "dmitry.obukhov@gmail.com"
 __authors__ = [__author__]
@@ -837,7 +837,9 @@ class Shrec(object):
 # end of class Shrec
 
 class Runner(Shrec):
+    """ Dummy, but quick child to perform simple operations """
     def __init__(self):
+        """ Rely on the inherited, no arguments, all to defaults """
         super(Runner,self).__init__()
 
     def create_parser(self):
@@ -856,18 +858,17 @@ if __name__ == "__main__":
         exit(-1)
     if arglist[0] == 'install':
         print('Installing the module')
-
-
         install_script = []
         install_script.append('from distutils.core import setup')
         install_script.append('setup(name="%s",version="%s",' % (__module__, __version__))
         install_script.append('      author="%s",' % __author__)
         install_script.append('      author_email="%s",' % __email__)
         install_script.append('      py_modules=["shrec"])')
-        worker = Runner()
-        worker.save_file(install_script, 'temp_setup.py')
-        worker.run('python   temp_setup.py install')
-        worker.run('rm -f temp_setup.py')
+        runner = Runner()
+        runner.save_file(install_script, 'temp_setup.py')
+        runner.run('python   temp_setup.py install')
+        runner.run('rm -f temp_setup.py')
         exit(0)
+    # end of install
     print('Unsupported argument "%s"' % arglist[0])
     exit(-1)
