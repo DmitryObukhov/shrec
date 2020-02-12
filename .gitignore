@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .autogit/*
+.vs/
 
 # C extensions
 *.so
