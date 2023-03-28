@@ -1,8 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+""" ShRec stands for Shell Recipes. It implements functions frequently used
+    for Linux system administration scripts.
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
 """
-    Shell helpers for Linux administration scripts
-"""
+
+__module__ = "shellbox"
+__version__ = "0.1.0"
+__author__ = "Dmitry Obukhov"
+__contact__ = "dmitry.obukhov@gmail.com"
+__authors__ = [__author__]
+__copyright__ = "Copyright (C) 2020, World"
+__credits__ = [__author__]
+__deprecated__ = False
+__email__ = __contact__
+__license__ = "GPLv3"
+__maintainer__ = __author__
+__status__ = "Production"
+__date__ = "2022/02/02"
 
 import datetime
 import json
@@ -409,11 +434,11 @@ class ShellBox:
     @staticmethod
     def find_files(path, mask='*.*'):
         """ Recursively find files """
-        res = ShellBox.run(f"find {path} -iname {mask}", quiet=True)
+        res = ShellBox.run(f"find {path} -iname '{mask}'", quiet=True)
         return res['stdout']
 
     @staticmethod
-    def for_each(flist, command_template, working_directory="", quiet=None, bypass_error=None):
+    def for_each(flist, command_template, working_directory="", dryrun=False, quiet=None, bypass_error=None):
         """ Execute command for each file in the list """
         log = []
         all_good = True
@@ -428,8 +453,9 @@ class ShellBox:
             command = command_template % fname
             if not quiet:
                 print(command)
-            res = ShellBox.run(command, working_directory, quiet=True, bypass_error=True)
-            log.append(res)
+            if not dryrun:
+                res = ShellBox.run(command, working_directory, quiet=True, bypass_error=True)
+                log.append(res)
             if res['status'] != 0:
                 all_good = False
         return all_good, log
@@ -445,6 +471,28 @@ class ShellBox:
                     shutil.copyfileobj(readfile, outfile)
             #---
         #---
+
+
+class SnippetCollection:
+    @staticmethod
+    def snippet_csvinout():
+        # https://realpython.com/python-csv/
+        import csv
+        with open('employee_birthday.txt') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            line_count = 0
+            for row in csv_reader:
+                if line_count == 0:
+                    print(f'Column names are {", ".join(row)}')
+                    line_count += 1
+                else:
+                    print(f'\t{row[0]} works in the {row[1]} department, and was born in {row[2]}.')
+                    line_count += 1
+            print(f'Processed {line_count} lines.')
+
+    def snipet_json():
+        pass
+        # https://realpython.com/python-json/
 
 
 class LinuxAdmin:
@@ -476,12 +524,6 @@ class LinuxAdmin:
         return os.getuid() == 0
 
     @staticmethod
-    def root_password():
-        pwd_file_name = os.path.expanduser("~/.local/sudopwd.txt")
-        txt_pwrd = TextEditor.read(pwd_file_name)
-        return txt_pwrd[0]
-
-    @staticmethod
     def sudo_run(command_str, working_directory="", quiet=True):
         res = ShellBox.run(f'sshpass -f ~/.local/sudopwd.txt sudo "{command_str}"', working_directory, quiet)
         return res['stdout']
@@ -495,12 +537,43 @@ class LinuxAdmin:
         flist = ShellBox.find_files(pathname, mask='*.obj')
         for fname in flist:
             print(fname[88:])
-    return len(flist)
+        return len(flist)
 
     @staticmethod
     def save_sudo_pswd(password, default_file_name="~/.local/sudopwd.txt"):
-        pass
+        default_file_name = os.path.expanduser(default_file_name)
+        with open(default_file_name, "w") as file_writer:
+            file_writer.write("%s\n" % password)
+
+    @staticmethod
+    def read_sudo_pswd(default_file_name="~/.local/sudopwd.txt"):
+        default_file_name = os.path.expanduser(default_file_name)
+        print(default_file_name)
+        with open(default_file_name, "r") as file_reader:
+            pwd = file_reader.readline()
+        return pwd
 
 
 if __name__ == "__main__":
-    pass
+    arglist = sys.argv.copy()  # Get list of command line arguments
+    del arglist[0]  # Item 0 is the script name, it must be deleted
+    if len(arglist) == 0:
+        print('Empty list of arguments')
+        exit(-1)
+    if arglist[0] == 'install':
+        print('Installing the module')
+
+        install_script = []
+        install_script.append('from distutils.core import setup')
+        install_script.append('setup(name="%s",version="%s",' % (__module__, __version__))
+        install_script.append('      author="%s",' % __author__)
+        install_script.append('      author_email="%s",' % __email__)
+        install_script.append('      py_modules=["%s"])'% (__module__))
+        TextEditor.write(install_script, 'temp_setup.py')
+
+        ShellBox.run('python   temp_setup.py install')
+        ShellBox.run('rm -f temp_setup.py')
+        exit(0)
+    # end of install
+    print('Unsupported argument "%s"' % arglist[0])
+    exit(-1)
